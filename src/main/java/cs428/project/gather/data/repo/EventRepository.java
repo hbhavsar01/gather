@@ -1,0 +1,19 @@
+package cs428.project.gather.data.repo;
+
+import java.util.List;
+
+import org.springframework.data.repository.CrudRepository;
+
+import cs428.project.gather.data.model.Event;
+
+public interface EventRepository  extends CrudRepository<Event, Long> {
+	/**
+	 * Returns the {@link Event} with the given identifier.
+	 * 
+	 * @param id the id to search for.
+	 * @return
+	 */
+	Event findOne(Long id);
+	
+	List<Event> findByDescription(String description);
+}
