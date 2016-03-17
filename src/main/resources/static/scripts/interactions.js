@@ -1,30 +1,87 @@
-var signedIn = false;
-//<?php
-//	if ($_SESSION['logged_in'] == 1) {
-//	    echo '<script type="text/javascript">var logged_in=true;</script>';
-//	} else {
-//	    echo '<script type="text/javascript">var logged_in=false;</script>';
-//	};
-//?>
-function tableInteractions() {
-	$('.star').on('click', function() {
-		$(this).toggleClass('star-checked');
-	});
+$(document).ready(function() {
+	resizeLayout();
+	resizeMap();
+//	tableInteractions();
+	locateMe();
+	enterZip();
+	registerBox();
+	signUp();
+	signIn();
+	signOut();
+	removeZipCodeError();
+	sessionCheck();
+	onLoadSessionCheck();
+	headerSelect();
+	loadCategories();
+//	loadEventsFirstView();
+}); 
 
-	$('.ckbox label').on('click', function() {
-		$(this).parents('tr').toggleClass('selected');
-	});
-
-	$('.btn-filter').on('click', function() {
-		var $target = $(this).data('target');
-		if ($target != 'all') {
-			$('.table tr').css('display', 'none');
-			$('.table tr[data-status="' + $target + '"]').fadeIn('slow');
-		} else {
-			$('.table tr').css('display', 'none').fadeIn('slow');
+function loadCategories(){
+	$.ajax({
+	 	accepts: "application/json",
+		type : "GET",
+		url : "api/categories",
+		contentType: "application/json; charset=UTF-8",
+		success : function(returnvalue) {
+			var categories=returnvalue._embedded.categories;
+			gather.global.categories = categories;
 		}
 	});
 }
+
+function resizeMap() {
+	var cw = $('#map-canvas').width()*.75;
+	$('#map-canvas').css({'height':cw+'px'});
+}
+
+function resizeLayout() {
+	$('#resizeLayout').on('click', function() {
+		if ($('#rightPane').hasClass("col-lg-7")) {
+			$('#resizeLayout').removeClass('glyphicon-resize-small').addClass('glyphicon-resize-full');
+			$('#rightPane').switchClass("col-lg-7", "col-lg-5");
+			setTimeout(
+					function(){
+						$('#leftPane').switchClass("col-lg-5", "col-lg-7");
+					}, 200);
+			setInterval(
+					function(){
+						resizeMap();
+					}, 10);
+		} else if ($('#rightPane').hasClass("col-lg-5")) {
+			$('#resizeLayout').removeClass('glyphicon-resize-full').addClass('glyphicon-resize-small');
+			$('#leftPane').switchClass("col-lg-7", "col-lg-5");
+			setTimeout(
+					function(){
+						$('#rightPane').switchClass("col-lg-5", "col-lg-7");
+					}, 200);
+			setInterval(
+					function(){
+						resizeMap();
+					}, 10);
+		}
+		clearInterval(1000);
+	});
+}
+
+//function tableInteractions() {
+//	$('.star').on('click', function() {
+//		$(this).toggleClass('star-checked');
+//	});
+//
+//	$('.ckbox label').on('click', function() {
+//		$(this).parents('tr').toggleClass('selected');
+//	});
+//
+//	$('.btn-filter').on('click', function() {
+//		var $target = $(this).data('target');
+//		if ($target != 'all') {
+//			$('.table tr').css('display', 'none');
+//			$('.table tr[data-status="' + $target + '"]').fadeIn('slow');
+//		} else {
+//			$('.table tr').css('display', 'none').fadeIn('slow');
+//		}
+//	});
+//}
 
 function locateMe() {
 	$('#locateMe').on('click', function() {
@@ -36,27 +93,28 @@ function enterZip() {
 	$('#enterZip').on('click', function() {
 		var zipcode = $('#zipCode').val();
 		var zipCodeErrorBox = $(this).attr('href');
+		$('#zipSearching').show();
 		
-		if (zipcode == "") {
-			$(zipCodeErrorBox).fadeIn(100);
-			$('#zipCodeErrorBox').html('Zip code field is empty');
-			return false;
-		} else if (zipcode.length != 5) {
-			$(zipCodeErrorBox).fadeIn(100);
-			$('#zipCodeErrorBox').html('Zip code must be five digits');
-			return false;
-		} else if (!($.isNumeric(zipcode))) {
-			$(zipCodeErrorBox).fadeIn(100);
-			$('#zipCodeErrorBox').html('Zip code must be five digits');
-			return false;
-		} else {
-			var returnValue = mapManager.determineCoordByZipCode(zipcode);
-			if (returnValue == -1) {
-				$(zipCodeErrorBox).fadeIn(100);
-				$('#zipCodeErrorBox').html('Zip code does not exist');
-			}
-			return true;
-		}
+		setTimeout(
+			function(){
+				if (zipcode == "") {
+					$(zipCodeErrorBox).fadeIn(100);
+					$('#zipCodeErrorBox').html('Zip code field is empty');
+				} else if (zipcode.length != 5) {
+					$(zipCodeErrorBox).fadeIn(100);
+					$('#zipCodeErrorBox').html('Zip code must be five digits');
+				} else if (!($.isNumeric(zipcode))) {
+					$(zipCodeErrorBox).fadeIn(100);
+					$('#zipCodeErrorBox').html('Zip code must be five digits');
+				} else {
+					var returnValue = mapManager.determineCoordByZipCode(zipcode);
+					if (returnValue == -1) {
+						$(zipCodeErrorBox).fadeIn(100);
+						$('#zipCodeErrorBox').html('Zip code does not exist');
+					}				
+				}
+				$('#zipSearching').hide();
+			}, 100);
 	});
 }
 
@@ -107,32 +165,6 @@ function registerBox() {
 
 }
 
-//function signIn() {
-//	$('#loginFormSubmit').on(
-//			'click',
-//			function() {
-//				var email = $("#signInEmail").val();
-//				var password = $("#signInPassword").val();
-//
-//				$.ajax({
-//						type : "POST",
-//						url : "api/registereds",
-//						contentType: "application/json",
-//						data : '{ \
-//							"firstName": "Tom", \
-//							"lastName": "jenkins", \
-//							"age": 30, \
-//							"location": "San Diego" \
-//						}',
-//						success : function(returnvalue) {
-//							if (returnvalue == "success") {
-//								alert("Sign In Successful")
-//							}
-//						}
-//					});
-//				});
-//}
-
 function signIn() {
 	$('#loginFormSubmit').on(
 			'click',
@@ -142,7 +174,7 @@ function signIn() {
 				$.ajax({
 				 	accepts: "application/json",
 					type : "POST",
-					url : "api/sign-in",
+					url : "rest/registrants/signin",
 					contentType: "application/json; charset=UTF-8",
 					dataType: "json",
 					data : '{ \
@@ -151,14 +183,16 @@ function signIn() {
 					}',
 					success : function(returnvalue) {
 						if (returnvalue.status == 0) {
-							alert("Sign In Successful");
+//							alert("Sign In Successful");
 							resetSignInFields()
-							signedIn = true
+							gather.global.session.signedIn = true
+							gather.global.currentDisplayName = returnvalue.displayName;
+							updateGreeting();
 							headerSelect()
 						} else {
-							alert(returnvalue.status)
-							alert(returnvalue.message)
-							alert("Sign In Unsuccessful")
+//							alert(returnvalue.status)
+//							alert(returnvalue.message)
+//							alert("Sign In Unsuccessful")
 							resetSignInFields()
 						}
 					}
@@ -166,6 +200,35 @@ function signIn() {
 			});
 
 }
+
+function signOut() {
+	$('#signOutButton').on(
+			'click',
+			function() {
+				 $.ajax({
+					 	accepts: "application/json",
+						type : "POST",
+						url : "rest/registrants/signout",
+						contentType: "application/json; charset=UTF-8",
+						success : function(returnvalue) {
+							if (returnvalue.status == 0) {
+//								alert(returnvalue.status)
+//								alert(returnvalue.message)
+								gather.global.session.signedIn = false;
+								headerSelect()
+							} else {
+								if (returnvalue.status != 0) {
+//									alert(returnvalue.status)
+//									alert(returnvalue.message)
+								}
+							}
+						}
+					});
+			});
+
+}
+
+
 
 function signUp() {
 	$('#registerFormSubmit').on(
@@ -178,7 +241,7 @@ function signUp() {
 				var registerBox = $('#registerFormSubmit').attr('href');
 				if (displayName == "" || password == "" || confirmPassword == "" || email == "") {
 					$('#formFeedback').html('All the fields are required');
-				} else if (validate_email(email) == false) {
+				} else if (validateEmail(email) == false) {
 					$('#formFeedback').html(
 							'Please enter a valid email address');
 				} else if (validatePass(password) == false) {
@@ -189,18 +252,23 @@ function signUp() {
 				} else if (validateDisplayName(displayName) == false) {
 					$('#formFeedback').html('Display name must be between than 5 and 15 characters');
 				} else {
-				 $('#loading').show();
 				 $.ajax({
 					 	accepts: "application/json",
 						type : "POST",
-						url : "api/register",
+						url : "/rest/registrants",
 						contentType: "application/json; charset=UTF-8",
 						dataType: "json",
+						beforeSend: function() {
+							$('#loading').show();
+						},
 						data : '{ \
 							"email" : ' + email + ', \
 							"password" : ' + password + ', \
 							"displayName" : ' + displayName + ' \
 						}',
+						complete: function() {
+							$('#loading').hide();
+						},
 						success : function(returnvalue) {
 							if (returnvalue.status == 0) {
 								$(registerBox).fadeOut(100);
@@ -208,25 +276,66 @@ function signUp() {
 									$('#mask').remove();
 								});
 								resetRegisterFields();
-								signedIn = true
+								gather.global.session.signedIn = true
+								gather.global.currentDisplayName = displayName;
+								updateGreeting();
 								headerSelect();
-								alert('Registration success.');
+//								alert('Registration success.');
 							} else {
 								if (returnvalue.status != 0) {
-									alert(returnvalue.status)
-									alert(returnvalue.message)
+//									alert(returnvalue.status)
+//									alert(returnvalue.message)
 									$('#form_feedback').html('This email is in use.');
 									
 								}
 							}
 						}
 					});
-					$('#loading').hide();
+					
 				}
 			});
 }
 
-function validate_email(email) {
+function sessionCheck() {
+	$.ajax({
+	 	accepts: "application/json",
+		type : "GET",
+		url : "rest/session",
+		contentType: "application/json; charset=UTF-8",
+		success : function(returnvalue, status, jqXHR) {
+			if (returnvalue.status == 5) {
+				gather.global.session.signedIn = true;
+				gather.global.currentDisplayName = jqXHR.responseJSON.displayName;
+				updateGreeting();
+				headerSelect();
+			}else {
+				gather.global.session.signedIn = false;
+				headerSelect();
+			} 
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+		    alert(jqXHR.status);
+		    alert(textStatus);
+		    alert(errorThrown);
+		}
+	});
+}
+
+
+
+
+function updateGreeting(){
+	document.getElementById("greetings").innerHTML = "Welcome "+gather.global.currentDisplayName;
+}
+
+function onLoadSessionCheck() {
+	//alert(signedIn);
+	$(window).unload(function() {
+		headerSelect();
+	}); 
+}
+
+function validateEmail(email) {
 	var x = email;
 	var atpos = x.indexOf("@");
 	var dotpos = x.lastIndexOf(".");
@@ -255,10 +364,10 @@ function validateDisplayName(displayName){
 
 
 function headerSelect() {
-	if (signedIn == true) {
+	if (gather.global.session.signedIn == true) {
 		$("#headerOut").hide();
 		$("#headerIn").show();
-	} else {
+	} else if (gather.global.session.signedIn == false){
 		$("#headerIn").hide();
 		$("#headerOut").show();
 	}
@@ -275,3 +384,4 @@ function resetRegisterFields() {
 	//$("#registration").reset();
 	return;
 }
+

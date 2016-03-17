@@ -3,6 +3,7 @@ package cs428.project.gather.data.model;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -11,21 +12,26 @@ import javax.persistence.ManyToMany;
 @Entity
 public class Category {
 	private @Id @GeneratedValue Long id;
-	private String name;
-	private String description;
 	
-
-	@ManyToMany(mappedBy="categories")
-	private Set<Event> events = new HashSet<Event>();
+	@Column(unique=true)
+	private String name;
 	
 	@ManyToMany(mappedBy="preferences")
-	private Set<Registrant> preferedUsers = new HashSet<Registrant>();
+	private Set<Registrant> userPreferences = new HashSet<Registrant>();
 
-	private Category() {}
+	protected Category() {}
 
-	public Category(String name, String description) {
-		this.name = name;
-		this.description = description;
+	public Category(String name) {
+		this.setName(name);
 		
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
 }

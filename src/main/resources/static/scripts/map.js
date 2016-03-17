@@ -14,18 +14,19 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 
 	var map = buildMap();
 
-	var foodLocationSearchRadiusInMiles = 2.0;
-	var foodLocationSearchRadiusInMeters = foodLocationSearchRadiusInMiles * 1609.34;
+	var eventSearchRadiusInMiles = 2.0;
+	var eventSearchRadiusInMeters = eventSearchRadiusInMiles * 1609.34;
 
 	var currentUserCoordinates = null;
 	var userMarker = null;
+	var eventMarker = null;
 	var searchRadiusCircle = null;
 
 	var geolocationSupported = (navigator.geolocation ? true : false);
 
-	var newFoodLocations = [];
+	var newEvents = [];
 
-	var establishedFoodLocations = [];
+	var establishedEvents = [];
 
 	function buildMap() {
 		var mapOptions = {
@@ -130,7 +131,7 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 				map.setView([userCoordinates.latitude, userCoordinates.longitude], currentZoomLevel);
 
 				placeUserMarker(userCoordinates);
-
+				getNearByEvents(userCoordinates);
 				currentUserCoordinates = userCoordinates;
 			}
 		}
@@ -165,7 +166,7 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 				fillOpacity: 0.2
 			};
 
-			searchRadiusCircle = L.circle(markerPosition, foodLocationSearchRadiusInMeters, searchRadiusCircleOptions);
+			searchRadiusCircle = L.circle(markerPosition, eventSearchRadiusInMeters, searchRadiusCircleOptions);
 			searchRadiusCircle.addTo(map);
 		}
 		else {
@@ -277,7 +278,351 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 		$("#general-failure-modal").modal("show");
 	}
 	
+	$('#addEventBtn').on('click', function() {
+		if(gather.global.session.signedIn){
+			addNewEvent()
+		}else{
+			$("#anonymous-user-add-event-failure-modal").modal("show");
+			$('#failureModalRegister').on('click', function() {
+				$('#registerButton').trigger('click');
+			});
+		}
+	});
+	
+	function addNewEvent() {
+
+		if(currentUserCoordinates === null) {
+			displayGeolocationUnsupportedModal();
+		}
+		else {
+
+			var markerCoordinates = buildOffsetMarkerCoordinates(currentUserCoordinates);
+			var markerPosition = new L.LatLng(markerCoordinates.latitude, markerCoordinates.longitude);
+
+			var iconOptions = {
+				"marker-size": "large",
+				"marker-symbol": "star",
+				"marker-color": "#419641"
+			};
+
+			var bounceOptions = {
+				duration: 500,
+				height: 100
+			};
+
+			var markerOptions = {
+				draggable: true,
+				icon: L.mapbox.marker.icon(iconOptions),
+				bounceOnAdd: true,
+				bounceOnAddOptions: bounceOptions
+			};
+
+			var popupOptions = {
+				minWidth: 400
+			};
+
+			var eventMarker = L.marker(markerPosition, markerOptions);
+
+			var newEventContent = getContentTemplateClone("#new-event-content-template");
+
+			var newEventDataID = generateElementID();
+			newEvents[newEventDataID] = {
+				eventMarker: eventMarker
+			}
+
+			$(newEventContent).find("button").each(function(index) {
+				$(this).attr("data-new-event-data-id", newEventDataID);
+			});
+
+			eventMarker.bindPopup(newEventContent[0], popupOptions);
+
+			eventMarker.on("dragend", function(event) {
+				eventMarker.openPopup();	
+	        });
+
+			setUpCategoryOptions()
+
+			eventMarker.addTo(map);
+
+			eventMarker.openPopup();
+		}
+	}
     
+	function setUpCategoryOptions(){
+
+		var newOptions={};
+		var catArray = gather.global.categories;
+		var $categories = $( "#new-event-category" );
+		$categories.empty();
+		for (i = 0; i < catArray.length; i++) {
+			newOptions[catArray[i].name] = catArray[i].name;
+			$categories.append($("<option></option>")
+				     .attr("value", catArray[i].name).text(catArray[i].name));
+		}
+	}
+	
+	this.discardNewEvent = function(newEventDataID) {
+		var eventData = newEvents[newEventDataID];
+
+		if(typeof(eventData) === "undefined") {
+			displayGeneralFailureModal();
+		}
+		else {
+			var eventMarker = eventData.eventMarker;
+			map.removeLayer(eventMarker);
+
+			delete newEvents[newEventDataID];
+		}
+
+	}
+
+	this.editNewEvent = function(newEventDataID) {
+		var eventData = newEvents[newEventDataID];
+
+		if(typeof(eventData) === "undefined") {
+			displayGeneralFailureModal();
+		}
+		else {
+			displayEditNewEventModal(newEventDataID);
+		}
+	}
+	
+	function displayEditNewEventModal(newEventDataID) {
+		var modalForm = $("#edit-new-event-modal");
+		modalForm.data("newEventDataID", newEventDataID);
+
+		var eventData = newEvents[newEventDataID];
+		if(typeof(eventData.newEventFormData) === "undefined") {
+			eventData.newEventFormData = {};
+		}
+
+		modalForm.on("show.bs.modal", function(event) {
+			//alert("lord");
+			//loadNewEventFormData();
+		});
+
+		modalForm.on("hidden.bs.modal", function(event) {
+			//alert("store")
+			//storeNewEventFormData();
+		});
+
+		modalForm.modal("show");
+	}
+
+	function loadNewEventFormData() {
+		var modalForm = $("#edit-new-event-modal");
+		var newEventDataID = modalForm.data("newEventDataID");
+
+		var eventData = newEvents[newEventDataID];
+
+		$("#new-event-name").val(eventData.newEventFormData.eventName);
+		$("#new-event-description").val(eventData.newEventFormData.eventDescription);
+		$("#new-event-category").val(eventData.newEventFormData.eventCategory);
+		$("#new-event-time").val(eventData.newEventFormData.eventTime);
+	}
+
+	function storeNewEventFormData() {
+		var modalForm = $("#edit-new-event-modal");
+		var newEventDataID = modalForm.data("newEventDataID");
+
+		var eventData = newEvents[newEventDataID];
+
+		if(eventData !== undefined) {
+			eventData.newEventFormData.eventName = $("#new-event-name").val();
+			eventData.newEventFormData.eventDescription = $("#new-event-description").val();
+			eventData.newEventFormData.eventCategory = $("#new-event-category").val();
+			eventData.newEventFormData.eventTime = $("#new-event-time").val();
+		}
+	}
+	
+	$("body").on("submit", "#new-event-form", function(event) {
+		event.preventDefault();
+
+		//alert("about to submit the event form!")
+		storeNewEventFormData();
+
+		submitNewEventForm();
+	});
+	
+	$('#new-event-time').datetimepicker();
+	//$('#new-event-category').selectmenu();
+	
+	function submitNewEventForm() {
+		var modalForm = $("#edit-new-event-modal");
+		var newEventDataID = modalForm.data("newEventDataID");
+		
+		createNewEvent(newEventDataID, function(newEventResponse) {
+			newEvent = newEventResponse.result;
+			mapManager.discardNewEvent(newEventDataID);
+
+			modalForm.modal("hide");
+
+			establishedEvents[newEvent.id] = newEvent;
+
+			gather.global.nearEvents.push(newEvent);
+			loadEventsFirstView(currentUserCoordinates);
+			
+			placeEstablishedEventMarker(newEvent, true);
+			
+			//TODO event card not implemented, we currently have event list only
+			//addEventCard(newEvent, true);
+			//updateEventCountTitle();
+			
+		}, function() {
+			modalForm.modal("hide");
+			displayGeneralFailureModal();
+		});
+	}
+/**
+ * REST call to create the event
+ */
+	function createNewEvent(newEventDataID, successCallback, failureCallback) {
+		var eventData = newEvents[newEventDataID];
+
+		var eventMarker = eventData.eventMarker;
+		var markerPosition = eventMarker.getLatLng();
+		var markerCoordinates = {
+			latitude: markerPosition.lat,
+			longitude: markerPosition.lng
+		};
+
+		var utc = (new Date(eventData.newEventFormData.eventTime).getTime());
+		var requestObject = {
+			eventName: eventData.newEventFormData.eventName,
+			eventCoordinates: markerCoordinates,
+			eventDescription: eventData.newEventFormData.eventDescription,
+			eventCategory: eventData.newEventFormData.eventCategory,
+			eventTime: utc,
+			callerCoordinates: currentUserCoordinates
+		};
+
+		var requestData = JSON.stringify(requestObject);
+		
+		var requestOptions = {
+			type: "POST",
+			url: "rest/events",
+			contentType: "application/json; charset=UTF-8",
+			data: requestData,
+			dataType: "json",
+			timeout: 10000,
+			success: function(result) {
+				if(typeof(successCallback) === "function") {
+					successCallback(result);
+				}
+			}
+		};
+
+		var response = $.ajax(requestOptions);
+
+		response.fail(function(error) {
+			console.log(error);
+			if(typeof(failureCallback) === "function") {
+				failureCallback();
+			}
+		});
+	}
+	
+	function placeEstablishedEventMarker(anEvent, bounceOnAdd) {
+		console.log(JSON.stringify(anEvent))
+		//var markerPosition = new L.LatLng(anEvent.coordinates.latitude, anEvent.coordinates.longitude);
+
+		var eCoordinates = {
+			latitude: anEvent.location.latitude,
+			longitude: anEvent.location.longitude
+		}
+		var markerPosition = new L.LatLng(eCoordinates.latitude, eCoordinates.longitude);
+		//var hotnessColor = determineHotnessColor(anEvent);
+
+		var iconOptions = {
+			"marker-size": "large",
+			"marker-symbol": "star",
+			//"marker-color": hotnessColor
+		};
+
+		var bounceOptions = {
+			duration: 500,
+			height: 100
+		};
+
+		var markerOptions = {
+			icon: L.mapbox.marker.icon(iconOptions),
+		};
+
+		var markerOptions = {
+			draggable: false,
+			icon: L.mapbox.marker.icon(iconOptions),
+			bounceOnAdd: bounceOnAdd,
+			bounceOnAddOptions: bounceOptions
+		};
+
+		var popupOptions = {
+			minWidth: 600
+		};
+
+		var eventMarker = L.marker(markerPosition, markerOptions);
+		eventMarker.addTo(map);
+
+		anEvent.eventMarker = eventMarker;
+		var establishedEventContent = getContentTemplateClone("#established-event-content-template");
+
+		$(establishedEventContent).find("button").each(function(index) {
+			$(this).attr("data-event-id", anEvent.locationID);
+		});
+
+		//TODO: distance from caller should be calculated based on anEvent object
+		var distanceFromCaller=distance(eCoordinates.latitude, eCoordinates.longitude,currentUserCoordinates.latitude, currentUserCoordinates.longitude,'M');
+		var establishedEventHTML = establishedEventContent[0].outerHTML; 
+		timeDisplay = new Date(anEvent.occurrences[0].timestamp);
+		establishedEventHTML = sprintf(establishedEventHTML, anEvent.name, anEvent.category.name, anEvent.description, timeDisplay, distanceFromCaller);
+
+		eventMarker.bindPopup(establishedEventHTML, popupOptions);
+	}
+	
+	function getNearByEvents(userCoordinates) {
+		var radiusMi = 15;
+		var hour = 24;
+
+		$.ajax({
+		 	accepts: "application/json",
+			type : "PUT",
+			url : "rest/events",
+			contentType: "application/json; charset=UTF-8",
+			dataType: "json",
+			data : '{ "latitude" : ' + userCoordinates.latitude + ', "longitude" : ' + userCoordinates.longitude + ', "radiusMi": ' + radiusMi + ', "hour": ' + hour + ' }',
+			success : function(returnvalue) {
+				signedIn = true;
+				gather.global.nearEvents = returnvalue.results;
+
+				console.log(JSON.stringify(gather.global.nearEvents))
+				for(i = 0; i < gather.global.nearEvents.length; i++){
+//					alert(gather.global.nearEvents[i].location.latitude);
+//					alert(gather.global.nearEvents[i].location.longitude);
+					var eCoordinates = {
+							latitude: gather.global.nearEvents[i].location.latitude,
+							longitude: gather.global.nearEvents[i].location.longitude
+							}
+					placeEstablishedEventMarker(gather.global.nearEvents[i], true);
+				}
+				loadEventsFirstView(userCoordinates);
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+//			    alert(jqXHR.status);
+//			    alert(textStatus);
+			    alert(errorThrown);
+				if (errorThrown == "Found") {
+					signedIn = true;
+					alert("error")
+					updateGreeting();
+					headerSelect();
+				} else {
+					signedIn = false;
+					headerSelect();
+				}
+
+			}
+		});
+	}
+	
 	this.determineCoordByZipCode = function(zipCode) {
 		
 		console.log("The user denied the request for geolocation.");
@@ -324,7 +669,17 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
         }
         //alert(uCoordinates.latitude + uCoordinates.longitude);
     }
+	
+	function displayGeolocationUnsupportedModal() {
+		$("#geolocation-unsupported-modal").modal("show");
+	}
+
+	function displayGeneralFailureModal() {
+		$("#general-failure-modal").modal("show");
+	}
 }
+
+
 
 function determineCoordByZipCode1(zipCode) {
 	
@@ -353,4 +708,18 @@ function determineCoordByZipCode1(zipCode) {
     } else {
     	return 0;
     }
+}
+
+function distance(lat1, lon1, lat2, lon2, unit) {
+	var radlat1 = Math.PI * lat1/180
+	var radlat2 = Math.PI * lat2/180
+	var theta = lon1-lon2
+	var radtheta = Math.PI * theta/180
+	var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+	dist = Math.acos(dist)
+	dist = dist * 180/Math.PI
+	dist = dist * 60 * 1.1515
+	if (unit=="K") { dist = dist * 1.609344 }
+	if (unit=="N") { dist = dist * 0.8684 }
+	return dist
 }

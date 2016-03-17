@@ -1,112 +1,142 @@
 package cs428.project.gather.data;
 
-
 import java.util.Date;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 
 public class RESTResponseData {
 
-	private int status = -1;
-	private String message = "";
-	private Date timestamp;
-	
-	public RESTResponseData(int status){
-		this.status = status;
-		this.timestamp = new Date();
-	}
-	
-	public RESTResponseData(int status, String message){
-		this.status = status;
-		this.timestamp = new Date();
-		this.message = message;
-	}
-	
-	public RESTResponseData(BindingResult error){
-		String message="";
-		int errorCode=-1;
-		int count=0;
-		for (Object object : error.getAllErrors()) {
-		    if(object instanceof FieldError) {
-		        FieldError fieldError = (FieldError) object;
-		        message+=fieldError.getDefaultMessage()+" ";
-		        errorCode=Integer.parseInt(fieldError.getCode());
-		    }
+    protected int status = -1;
+    protected String message = "";
+    protected long timestamp;
 
-		    if(object instanceof ObjectError) {
-		        ObjectError objectError = (ObjectError) object;
-		        message+=objectError.getDefaultMessage()+" ";
-		        errorCode=Integer.parseInt(objectError.getCode());
-		    }
-		    count++;
-		}
-		if(count>1){
-			this.status=-100;
-		}else{
-			this.status = errorCode;
-		}
-		this.timestamp = new Date();
-		this.message = message;
-	}
+    public RESTResponseData(){
+    }
 
-	public int getSTATUS() {
-		return status;
-	}
+    public RESTResponseData(int status){
+        this.status = status;
+        Date now = new Date();
+        this.timestamp = now.getTime();
+    }
 
-	public void setSTATUS(int status) {
-		this.status = status;
-	}
+    public RESTResponseData(int status, String message){
+        this.status = status;
+        Date now = new Date();
+        this.timestamp = now.getTime();
+        this.message = message;
+    }
 
-	@Override
-	public int hashCode() {
-		HashCodeBuilder builder = new HashCodeBuilder();
+    public RESTResponseData(int status, String message, long timestamp){
+        this.status = status;
+        this.message = message;
+        this.timestamp = timestamp;
+    }
 
-		builder.append(this.status);
-		builder.append(this.message);
+    public static ResponseEntity<RESTResponseData> responseBuilder(BindingResult error){
+        String message="";
+        int errorCode=-1;
+        for (Object object : error.getAllErrors()) {
+            if(object instanceof FieldError) {
+                FieldError fieldError = (FieldError) object;
+                message+=fieldError.getDefaultMessage()+" ";
+                errorCode=Integer.parseInt(fieldError.getCode());
+            }
 
-		int hashCode = builder.toHashCode();
+            if(object instanceof ObjectError) {
+                ObjectError objectError = (ObjectError) object;
+                message+=objectError.getDefaultMessage()+" ";
+                errorCode=Integer.parseInt(objectError.getCode());
+            }
+            break;
+        }
 
-		return hashCode;
-	}
+        HttpStatus httpStatus=convertErrorCodeToHttpStatus(errorCode);
+        return new ResponseEntity<RESTResponseData>(new RESTResponseData(errorCode,message),httpStatus);
+    }
 
-	@Override
-	public boolean equals(Object anotherObject) {
-		boolean equal = false;
+    private static HttpStatus convertErrorCodeToHttpStatus(int errorCode) {
+        HttpStatus result = HttpStatus.BAD_REQUEST;
+        switch(errorCode){
+        case 0:
+            result = HttpStatus.OK;
+        case -1:
+            result = HttpStatus.UNPROCESSABLE_ENTITY;
+        case -2:
+            result = HttpStatus.LENGTH_REQUIRED;
+        case -3:
+            result = HttpStatus.BAD_REQUEST;
+        case -4:
+            result = HttpStatus.CONFLICT;
+        case -5:
+            result = HttpStatus.NOT_FOUND;
+        case -6:
+            result = HttpStatus.UNAUTHORIZED;
+        case -7:
+            result = HttpStatus.BAD_REQUEST;
 
-		if (anotherObject == this) {
-			equal = true;
-		} else if (anotherObject != null && anotherObject.getClass().equals(this.getClass())) {
-			RESTResponseData anotherSignInData = (RESTResponseData) anotherObject;
+        }
+        return result;
+    }
 
-			EqualsBuilder equalsBuilder = new EqualsBuilder();
+    public int getSTATUS() {
+        return status;
+    }
 
-			equalsBuilder.append(this.status, anotherSignInData.status);
-			equalsBuilder.append(this.message, anotherSignInData.message);
-			
+    public void setSTATUS(int status) {
+        this.status = status;
+    }
 
-			equal = equalsBuilder.isEquals();
-		}
-		return equal;
-	}
+    @Override
+    public int hashCode() {
+        HashCodeBuilder builder = new HashCodeBuilder();
 
-	public String getMessage() {
-		return message;
-	}
+        builder.append(this.status);
+        builder.append(this.message);
 
-	public void setMessage(String message) {
-		this.message = message;
-	}
+        int hashCode = builder.toHashCode();
 
-	public Date getTimestamp() {
-		return timestamp;
-	}
+        return hashCode;
+    }
 
-	public void setTimestamp(Date timestamp) {
-		this.timestamp = timestamp;
-	}
+    @Override
+    public boolean equals(Object anotherObject) {
+        boolean equal = false;
+
+        if (anotherObject == this) {
+            equal = true;
+        } else if (anotherObject != null && anotherObject.getClass().equals(this.getClass())) {
+            RESTResponseData anotherSignInData = (RESTResponseData) anotherObject;
+
+            EqualsBuilder equalsBuilder = new EqualsBuilder();
+
+            equalsBuilder.append(this.status, anotherSignInData.status);
+            equalsBuilder.append(this.message, anotherSignInData.message);
+
+
+            equal = equalsBuilder.isEquals();
+        }
+        return equal;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
 
 }

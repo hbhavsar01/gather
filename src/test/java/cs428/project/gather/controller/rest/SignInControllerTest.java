@@ -2,7 +2,6 @@ package cs428.project.gather.controller.rest;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -58,11 +57,11 @@ public class SignInControllerTest {
 	public void testSignInUserSuccess() throws JsonProcessingException {
 		Map<String, Object> apiResponse = authenticateUser("existed@email.com", "password");
 		String message = apiResponse.get("message").toString();
+		String displayName = apiResponse.get("displayName").toString();
 		Integer status = (Integer) (apiResponse.get("status"));
 		assertEquals("success", message);
+		assertEquals("existedName", displayName);
 		assertEquals((Integer)0, status); //success
-
-		//TODO Need to further confirm the session is updated correctly
 	}
 	
 	@Test
@@ -72,8 +71,6 @@ public class SignInControllerTest {
 		Integer status = (Integer) (apiResponse.get("status"));
 		assertEquals("invalid field-passwordThe password is invalid.  Please enter a valid password. ", message);
 		assertEquals((Integer)(-6), status); //success
-
-		//TODO Need to further confirm the session is updated correctly
 	}
 	
 	@Test
@@ -83,8 +80,6 @@ public class SignInControllerTest {
 		Integer status = (Integer) (apiResponse.get("status"));
 		assertEquals("Field invalid-email:Please enter a valid email address. ", message);
 		assertEquals((Integer)(-3), status); //success
-
-		//TODO Need to further confirm the session is not added (Login Failed)
 	}
 	
 	@Test
@@ -94,8 +89,6 @@ public class SignInControllerTest {
 		Integer status = (Integer) (apiResponse.get("status"));
 		assertEquals("Field invalid-password:The password length must be 64 characters or less. ", message);
 		assertEquals((Integer)(-2), status); //success
-
-		//TODO Need to further confirm the session is not added (Login Failed)
 	}
 	
 	@Test
@@ -105,8 +98,6 @@ public class SignInControllerTest {
 		Integer status = (Integer) (apiResponse.get("status"));
 		assertEquals("Field invalid-email:The email address doesn't exist.  Please enter another email address. ", message);
 		assertEquals((Integer)(-5), status); //success
-
-		//TODO Need to further confirm the session is not added (Login Failed)
 	}
 	
 	private Map<String, Object> authenticateUser(String email, String password) throws JsonProcessingException {
@@ -123,7 +114,7 @@ public class SignInControllerTest {
 
 		// Invoking the API
 		@SuppressWarnings("unchecked")
-		Map<String, Object> apiResponse = restTemplate.postForObject("http://localhost:8888/api/sign-in", httpEntity,
+		Map<String, Object> apiResponse = restTemplate.postForObject("http://localhost:8888/rest/registrants/signin", httpEntity,
 				Map.class, Collections.EMPTY_MAP);
 
 		assertNotNull(apiResponse);

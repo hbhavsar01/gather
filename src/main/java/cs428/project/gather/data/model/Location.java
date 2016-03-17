@@ -6,11 +6,13 @@ import javax.persistence.Id;
 
 import org.springframework.util.Assert;
 
+import cs428.project.gather.data.Coordinates;
+
 @Entity
 public class Location {
 	private @Id @GeneratedValue Long id;
 	private double latitude;
-	private double longtitude;
+	private double longitude;
 	private String streetAddr;
 	private String city;
 	private String state;
@@ -25,6 +27,16 @@ public class Location {
 		this.setDescription(description);
 	}
 	
+	public Location(Coordinates coords){
+		this.latitude = coords.getLatitude();
+		this.longitude = coords.getLongitude();
+	}
+	
+	public Location(double latitude, double longitude){
+		this.latitude = latitude;
+		this.longitude = longitude;
+	}
+	
 	public Location(String description, String streetAddr, String city, String state, String zipCode, double latitude, double longitude){
 		this.description = description;
 		this.streetAddr = streetAddr;
@@ -32,7 +44,7 @@ public class Location {
 		this.state = state;
 		this.zipCode = zipCode;
 		this.latitude = latitude;
-		this.longtitude = longitude;
+		this.longitude = longitude;
 	}
 	
 	public String getDescription() {
@@ -48,11 +60,11 @@ public class Location {
 	public void setLatitude(double latitude) {
 		this.latitude = latitude;
 	}
-	public double getLongtitude() {
-		return longtitude;
+	public double getLongitude() {
+		return longitude;
 	}
-	public void setLongtitude(double longtitude) {
-		this.longtitude = longtitude;
+	public void setLongitude(double longtitude) {
+		this.longitude = longtitude;
 	}
 	public String getStreetAddr() {
 		return streetAddr;
@@ -77,5 +89,12 @@ public class Location {
 	}
 	public void setZipCode(String zipCode) {
 		this.zipCode = zipCode;
+	}
+	
+	public Coordinates getCoordinates(){
+		Coordinates coords = new Coordinates();
+		coords.setLatitude(latitude);
+		coords.setLongitude(longitude);
+		return coords;
 	}
 }
