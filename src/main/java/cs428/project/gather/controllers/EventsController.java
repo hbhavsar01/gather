@@ -1,6 +1,8 @@
 package cs428.project.gather.controllers;
 
+import java.lang.reflect.Type;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +16,11 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 
 import cs428.project.gather.data.*;
 import cs428.project.gather.data.model.*;
@@ -121,6 +128,39 @@ public class EventsController {
 
 		return RESTResourceResponseData.createResponse(savedEventResult, HttpStatus.CREATED);
 	}
+	
+	@RequestMapping(value = "/rest/events/checkin", method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<RESTResourceResponseData<Event>> checkInEvent(HttpServletRequest request,
+			@RequestBody String rawData, BindingResult bindingResult) {
+		// TODO: Wrap this in TryCatch, report exception to frontend.
+		// Creates the json object which will manage the information received 
+		GsonBuilder builder = new GsonBuilder(); 
+
+		// Register an adapter to manage the date types as long values 
+		builder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() { 
+			@Override
+		   public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+		      return new Date(json.getAsJsonPrimitive().getAsLong()); 
+		   }
+
+		});
+		Gson gson = builder.create();
+		Event checkInEventData = gson.fromJson(rawData, Event.class);
+
+		if (!ActorTypeHelper.isRegisteredUser(request)) {
+			System.out.println("An anonymous user tried to check in an event.");
+			bindingResult.reject("-7", "Incorrect User State. Only registered users can add events.");
+			return RESTResourceResponseData.<Event> badResponse(bindingResult);
+		}
+
+		//TODO: Write validator for Event Data
+
+		//TODO: Perform logic to check in an Event
+
+		return RESTResourceResponseData.createResponse(checkInEventData, HttpStatus.OK);
+	}
+
 
 	private Event buildEvent(NewEventData newEventData, Registrant owner, Errors errors) {
 		Event newEvent = new Event(newEventData.getEventName());
