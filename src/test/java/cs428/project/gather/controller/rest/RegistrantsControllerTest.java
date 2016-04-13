@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(GatherApplication.class)
 @WebIntegrationTest
-public class RegisterControllerTest {
+public class RegistrantsControllerTest {
 
 	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -64,9 +64,8 @@ public class RegisterControllerTest {
 
 		// Fetching the Registrant details directly from the DB to verify the
 		// API succeeded
-		List<Registrant> listUsers = this.registrantRepo.findByDisplayName("testingNewUser");
-		assertEquals(1, listUsers.size());
-		Registrant aUser = listUsers.get(0);
+		Registrant aUser = this.registrantRepo.findByDisplayName("testingNewUser");
+		assertTrue(aUser!=null);
 		assertEquals("testingNewUser", aUser.getDisplayName());
 		assertEquals("newEmail@email.com", aUser.getEmail());
 		assertEquals("QWER1234", aUser.getPassword());
@@ -85,11 +84,11 @@ public class RegisterControllerTest {
 
 		// Fetching the Registrant details directly from the DB to verify the
 		// API succeeded
-		List<Registrant> listUsers = this.registrantRepo.findByDisplayName("testingNewUser");
-		assertEquals(0, listUsers.size());
+		Registrant testUser = this.registrantRepo.findByDisplayName("testingNewUser");
+		assertTrue(testUser==null);
 
 	}
-	
+
 	@Test
 	public void testRegisterDuplicatedUserDisplayName() throws JsonProcessingException {
 
@@ -103,7 +102,7 @@ public class RegisterControllerTest {
 		// Fetching the Registrant details directly from the DB to verify nothing added
 		assertEquals(1,this.registrantRepo.count());
 	}
-	
+
 	@Test
 	public void testRegisterDisplayNameTooLong() throws JsonProcessingException {
 
@@ -117,7 +116,7 @@ public class RegisterControllerTest {
 		// Fetching the Registrant details directly from the DB to verify nothing added
 		assertEquals(1,this.registrantRepo.count());
 	}
-	
+
 	@Test
 	public void testRegisterInvalidEmailAddress() throws JsonProcessingException {
 
@@ -131,7 +130,7 @@ public class RegisterControllerTest {
 		// Fetching the Registrant details directly from the DB to verify nothing added
 		assertEquals(1,this.registrantRepo.count());
 	}
-	
+
 	private Map<String, Object> attemptAddUser(String email, String password, String displayName) throws JsonProcessingException {
 		// Building the Request body data
 		Map<String, Object> requestBody = new HashMap<String, Object>();

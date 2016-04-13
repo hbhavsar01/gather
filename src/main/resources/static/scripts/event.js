@@ -1,11 +1,24 @@
-
 function loadEventsFirstView(userCoordinates) {
 	var events = gather.global.nearEvents
+	appentToTable("eventTable", events, userCoordinates, "around you");
+}
 
+function loadJoinedEvents(userCoordinates) {
+	var events = gather.global.joinedEvents;
+	appentToTable("joinedTable", events, userCoordinates, "that you have joined");
+}
+
+function loadOwnedEvents(userCoordinates) {
+	var events = gather.global.ownedEvents;
+	appentToTable("ownedTable", events, userCoordinates, "that you own");
+}
+
+function appentToTable(tableClass, events, userCoordinates, message){
 	if (events != null) {
 		if (events.length != 0) {
-			$('#eventTable').html('');
+			$('.' + tableClass).html('');
 			for(i = 0; i < events.length; i++){
+				var eventId = events[i].id;
 				var lat1 = events[i].location.latitude;
 				var lon1 = events[i].location.longitude;
 				var lat2 = parseFloat(userCoordinates.latitude);
@@ -24,8 +37,8 @@ function loadEventsFirstView(userCoordinates) {
 				var zipCode = events[i].location.zipCode;
 				var address = streetAddress + ', ' + city + ', ' + state + ' ' + zipCode;
 				var description = events[i].description;
-				$('#eventTable').append(
-					'<tr> ' +
+				$('.' + tableClass).append(
+					'<tr style="cursor: pointer;" onclick="mapManager.showPop('+ eventId +');">' +
 						'<td colspan="3">  ' +
 							'<div class="media event-card"> ' +
 								'<a href="#" class="pull-left"> ' +
@@ -36,6 +49,7 @@ function loadEventsFirstView(userCoordinates) {
 									'<span style="margin-right:40px;" class="pull-right">'+ '[rating]' +'</span>' +
 									'<h4 class="list-title">'+ title +'</h4>' +
 									'<span class="pull-right"></span>' +
+									'<p style="display:none;" eventId="' + eventId + '"></p>' +
 									'<p class="list-description">Category: '+ category +'</p>' +
 									'<p class="list-description">Date: '+ date + ', ' + time +'</p>' +
 									'<p class="list-description">Place: '+ address +'</p>' +
@@ -47,18 +61,18 @@ function loadEventsFirstView(userCoordinates) {
 				);
 			}
 		} else {
-			$('#eventTable').html('');
-			$('#eventTable').append(
+			$('.' + tableClass).html('');
+			$('.' + tableClass).append(
 				'<tr> ' +
 					'<td colspan="3">  ' +
 						'<div class="media event-card"> ' +
 							'<div class="media-body">' +
-								'<h4 class="list-title">There is no event around you :(</h4>' +
+								'<h4 class="list-title">There are no events '+ message +' :(</h4>' +
 							'</div>' +
 						'</div>' +
 					'</td>' +
 				'</tr>'
 			);
-		} 
+		}
 	}
 }
