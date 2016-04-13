@@ -292,6 +292,40 @@ public class EventControllerTest {
 		assertFalse(backendEvent.getParticipants().contains(user));
 
 	}
+	
+	@Test
+	public void testRemoveEvent() throws JsonProcessingException {
+		Event event1 = createFirstEvent();
+
+		// Add user as participant in events
+		Registrant user = this.regRepo.findOneByEmail("existed@email.com");
+		event1.addOwner(user);
+
+		// Save events to DB
+		event1 = this.eventRepo.save(event1);
+		long eventId = event1.getId();
+
+		// Make sure user is participant
+		assertTrue(event1.getOwners().contains(user));
+
+		HttpEntity<String> requestEntity = signInAndCheckSession("existed@email.com", "password");
+
+		// Receive the request body as a string so that it can be parsed and
+		// validated
+		ResponseEntity<String> responseStr = attemptRemoveEvent(eventId, requestEntity.getHeaders());
+		assertEquals(HttpStatus.OK, responseStr.getStatusCode());
+
+		// Parse the data back to RESTPaginatedResourcesResponseData<Event>
+		RESTResourceResponseData<Event> resourceResponseData = parseEventResponseData(responseStr.getBody());
+		Event frontendEvent = resourceResponseData.getResult();
+
+		assertEquals(event1.getId(), frontendEvent.getId());
+
+		// Make sure event removed in backend
+		Event backendEvent = this.eventRepo.findOne(event1.getId());
+		assertTrue(backendEvent==null);
+
+	}
 
 	private ResponseEntity<String> attemptJoinEvent(Long Id, HttpHeaders headers) throws JsonProcessingException {
 		// Building the Request body data
@@ -323,6 +357,24 @@ public class EventControllerTest {
 
 		// Invoking the API
 		ResponseEntity<String> responseStr = restTemplate.postForEntity("http://localhost:8888/rest/events/leave",
+				httpEntity, String.class);
+
+		assertNotNull(responseStr);
+		return responseStr;
+	}
+	
+	private ResponseEntity<String> attemptRemoveEvent(Long Id, HttpHeaders headers) throws JsonProcessingException {
+		// Building the Request body data
+		Map<String, Object> requestBody = new HashMap<String, Object>();
+		requestBody.put("eventId", Id);
+		HttpHeaders requestHeaders = new HttpHeaders();
+		requestHeaders.set("Cookie", headers.getFirst("Cookie"));
+		requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> httpEntity = new HttpEntity<String>(OBJECT_MAPPER.writeValueAsString(requestBody),
+				requestHeaders);
+
+		// Invoking the API
+		ResponseEntity<String> responseStr = restTemplate.postForEntity("http://localhost:8888/rest/events/remove",
 				httpEntity, String.class);
 
 		assertNotNull(responseStr);
