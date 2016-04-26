@@ -1,4 +1,4 @@
-package cs428.project.gather.controller.rest;
+package cs428.project.gather.controllers;
 
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,10 +22,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cs428.project.gather.GatherApplication;
-import cs428.project.gather.data.RESTResponseData;
-import cs428.project.gather.data.model.Registrant;
-import cs428.project.gather.data.repo.EventRepository;
-import cs428.project.gather.data.repo.RegistrantRepository;
+import cs428.project.gather.data.*;
+import cs428.project.gather.data.model.*;
+import cs428.project.gather.data.repo.*;
+import cs428.project.gather.data.response.*;
 
 import static org.junit.Assert.*;
 
@@ -38,7 +38,7 @@ import java.util.Map;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(GatherApplication.class)
 @WebIntegrationTest
-public class SignOutControllerTest {
+public class SessionControllerTest {
 
 	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -60,9 +60,9 @@ public class SignOutControllerTest {
 		this.registrantRepo.save(aUser);
 		assertEquals(this.registrantRepo.count(), 1);
 	}
-	
+
 	@Test
-	public void testSignInUserSuccess() throws JsonProcessingException {
+	public void testSessionFound() throws JsonProcessingException {
 
 		ResponseEntity<RESTResponseData> signInResponse = authenticateUser("existed@email.com", "password");
 		List<String> cookies = signInResponse.getHeaders().get("Set-Cookie");
@@ -70,42 +70,42 @@ public class SignOutControllerTest {
 		HttpHeaders requestHeaders = new HttpHeaders();
 		requestHeaders.set("Cookie",StringUtils.join(cookies,';'));
 		HttpEntity<String> requestEntity = new HttpEntity<String>(requestHeaders);
-		
+
 		// Invoking the API
-		
-		ResponseEntity<RESTResponseData> response = signOutUser(requestEntity);
+
+		ResponseEntity<RESTResponseData> response = checkSesseion(requestEntity);
 		assertTrue(response.getStatusCode().equals(HttpStatus.OK));
 
 		RESTResponseData responseData = response.getBody();
-		assertTrue(responseData.getMessage().equals("success"));
+		assertTrue(responseData.getMessage().equals("Session Found"));
 
 	}
-	
+
 	@Test
 	public void testSignOutUserFail() throws IOException {
 		HttpHeaders requestHeaders = new HttpHeaders();
 		HttpEntity<String> requestEntity = new HttpEntity<String>(requestHeaders);
-		ResponseEntity<RESTResponseData> response = signOutUser(requestEntity);
-		assertTrue(response.getStatusCode().equals(HttpStatus.BAD_REQUEST));
+		ResponseEntity<RESTResponseData> response = checkSesseion(requestEntity);
+		assertTrue(response.getStatusCode().equals(HttpStatus.OK));
 
 		RESTResponseData responseData = response.getBody();
-		assertTrue(responseData.getMessage().equals("User is not in authenticated state"));
+		assertTrue(responseData.getMessage().equals("Session Not Found"));
 
 	}
-	
-	private ResponseEntity<RESTResponseData> signOutUser(HttpEntity<String> requestEntity) throws JsonProcessingException {
+
+	private ResponseEntity<RESTResponseData> checkSesseion(HttpEntity<String> requestEntity) throws JsonProcessingException {
 
 		// Invoking the API
-		
-		ResponseEntity<RESTResponseData> response = restTemplate.exchange("http://localhost:8888/rest/registrants/signout", HttpMethod.POST, requestEntity, RESTResponseData.class);
+
+		ResponseEntity<RESTResponseData> response = restTemplate.exchange("http://localhost:8888/rest/session", HttpMethod.GET, requestEntity, RESTResponseData.class);
 
 		assertNotNull(response);
-		
+
 		// Asserting the response of the API.
 		return response;
 
 	}
-	
+
 	private ResponseEntity<RESTResponseData> authenticateUser(String email, String password) throws JsonProcessingException {
 		// Building the Request body data
 		Map<String, Object> requestBody = new HashMap<String, Object>();
@@ -113,7 +113,7 @@ public class SignOutControllerTest {
 		requestBody.put("password", password);
 		HttpHeaders requestHeaders = new HttpHeaders();
 		requestHeaders.setContentType(MediaType.APPLICATION_JSON);
-		
+
 		// Creating http entity object with request body and headers
 		HttpEntity<String> httpEntity = new HttpEntity<String>(OBJECT_MAPPER.writeValueAsString(requestBody),
 				requestHeaders);
@@ -121,10 +121,10 @@ public class SignOutControllerTest {
 		@SuppressWarnings("unchecked")
 		ResponseEntity<RESTResponseData> result = restTemplate.exchange("http://localhost:8888/rest/registrants/signin", HttpMethod.POST, httpEntity,
 				Map.class, Collections.EMPTY_MAP);
-		
+
 		assertNotNull(result);
 		// Asserting the response of the API.
-
+		//return apiResponse;
 		return result;
 
 	}

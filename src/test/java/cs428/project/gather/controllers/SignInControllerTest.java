@@ -1,4 +1,4 @@
-package cs428.project.gather.controller.rest;
+package cs428.project.gather.controllers;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,9 +21,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cs428.project.gather.GatherApplication;
-import cs428.project.gather.data.model.Registrant;
-import cs428.project.gather.data.repo.EventRepository;
-import cs428.project.gather.data.repo.RegistrantRepository;
+import cs428.project.gather.data.model.*;
+import cs428.project.gather.data.repo.*;
+import cs428.project.gather.data.response.*;
 
 import static org.junit.Assert.*;
 
@@ -65,7 +65,7 @@ public class SignInControllerTest {
 	}
 
 	@Test
-	public void testSignInUserWorngPassowrd() throws JsonProcessingException {
+	public void testSignInUserWrongPassword() throws JsonProcessingException {
 		Map<String, Object> apiResponse = authenticateUser("existed@email.com", "wrongpassword");
 		String message = apiResponse.get("message").toString();
 		Integer status = (Integer) (apiResponse.get("status"));

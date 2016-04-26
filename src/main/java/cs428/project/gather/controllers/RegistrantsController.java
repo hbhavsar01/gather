@@ -1,30 +1,29 @@
 package cs428.project.gather.controllers;
 
+import cs428.project.gather.data.form.*;
+import cs428.project.gather.data.model.*;
+import cs428.project.gather.data.response.*;
+import cs428.project.gather.utilities.*;
+
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.*;
 import org.springframework.http.*;
-import com.google.gson.Gson;
-
-import cs428.project.gather.data.*;
-import cs428.project.gather.data.model.*;
-import cs428.project.gather.utilities.*;
 
 @Controller("RegistrantsController")
 public class RegistrantsController extends AbstractGatherController {
 	@RequestMapping(value = "/rest/registrants", method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<RESTResponseData> register(HttpServletRequest request, @RequestBody String rawData, BindingResult bindingResult) {
-		if (! nonAuthenticatedRequest(request, bindingResult)) return RESTResponseData.responseBuilder(bindingResult);
+		if (! nonAuthenticatedRequest(request, bindingResult)) return RESTResponseData.buildResponse(bindingResult);
 
 		RegistrationData registrationData = RegistrationData.parseIn(rawData, registrationDataValidator, bindingResult);
-		if (bindingResult.hasErrors()) return RESTResponseData.responseBuilder(bindingResult);
+		if (bindingResult.hasErrors()) return RESTResponseData.buildResponse(bindingResult);
 
 		Registrant newRegistrant = Registrant.buildRegistrantFrom(registrationData, categoryRepo, bindingResult);
-		if (bindingResult.hasErrors()) return RESTResponseData.responseBuilder(bindingResult);
+		if (bindingResult.hasErrors()) return RESTResponseData.buildResponse(bindingResult);
 
 		Registrant savedRegistrantResult = this.registrantRepo.save(newRegistrant);
 		ActorStateUtility.storeActorInSession(request, savedRegistrantResult);
@@ -32,6 +31,13 @@ public class RegistrantsController extends AbstractGatherController {
 		return new ResponseEntity<RESTResponseData>(new RESTResponseData(0,"success"), HttpStatus.CREATED);
 	}
 
+	@RequestMapping(value = "/rest/registrants/displayname", method = RequestMethod.GET)
+	public ResponseEntity<RESTPaginatedResourcesResponseData<String>> getRegistrantNames(HttpServletRequest request) {	
+		List<String> allUserNames = registrantRepo.findAllDisplayNames();
+		return RESTPaginatedResourcesResponseData.createResponse(request, allUserNames);
+	}
+	
+	//TODO: This looks like it should just be a GET, not a PUT. We do nothing with any passed in data.
 	@RequestMapping(value = "/rest/registrants/info", method = RequestMethod.PUT, consumes = "application/json", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<RESTResourceResponseData<Registrant>> getRegistrant(HttpServletRequest request, @RequestBody String rawData, BindingResult bindingResult) {
