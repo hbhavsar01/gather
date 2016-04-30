@@ -1,17 +1,18 @@
 package cs428.project.gather.data.form;
 
-import cs428.project.gather.data.model.*;
-import cs428.project.gather.utilities.GsonHelper;
-import cs428.project.gather.validator.*;
+import java.util.List;
 
-import java.util.*;
-import com.google.gson.*;
 import org.springframework.validation.Errors;
+
+import com.google.gson.Gson;
+
+import cs428.project.gather.utilities.GsonHelper;
+import cs428.project.gather.validator.AbstractValidator;
 
 public class UpdateEventData extends NewEventData {
 	private Long eventId;
 	private List<String> owners = null;
-	private List<String> participants= null;
+	private List<String> participants = null;
 
 	public static UpdateEventData parseIn(String rawData, AbstractValidator validator, Errors errors) {
 		System.out.println("rawData: " + rawData);

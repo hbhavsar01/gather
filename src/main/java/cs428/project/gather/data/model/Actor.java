@@ -1,7 +1,14 @@
 package cs428.project.gather.data.model;
 
-import javax.persistence.*;
-import org.apache.commons.lang3.builder.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 @Entity
 public class Actor {

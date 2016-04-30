@@ -1,16 +1,14 @@
 package cs428.project.gather.data.form;
 
-import cs428.project.gather.validator.*;
-import cs428.project.gather.utilities.*;
-import cs428.project.gather.data.*;
-import cs428.project.gather.data.model.Occurrence;
-
-import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.builder.*;
-import com.google.gson.*;
 import org.springframework.validation.Errors;
+
+import com.google.gson.Gson;
+
+import cs428.project.gather.data.Coordinates;
+import cs428.project.gather.utilities.GeodeticHelper;
+import cs428.project.gather.validator.AbstractValidator;
 
 public class NewEventData {
 	public static final String EVENT_NAME_FIELD_NAME = "eventName";
@@ -24,7 +22,7 @@ public class NewEventData {
 	private Coordinates eventCoordinates;
 	private String eventDescription;
 	private String eventCategory;
-	//private long eventTime;
+	// private long eventTime;
 	private List<Long> eventOccurrences = null;
 	private Coordinates callerCoordinates;
 

@@ -26,29 +26,33 @@ import cs428.project.gather.data.repo.RegistrantRepository;
 @WebAppConfiguration
 @ActiveProfiles("scratch")
 public class CategoryRepositoryIntegrationTest {
-	
+
 	@Autowired
 	EventRepository eventRepo;
-	
+
 	@Autowired
 	RegistrantRepository registrantRepo;
-	
+
 	@Autowired
 	CategoryRepository categoryRepo;
-	
+
 	@Before
 	public void setUp() {
-		//NOTE: Since Event currently owns the relationship, you must delete the events prior to deleting registrants
+		// NOTE: Since Event currently owns the relationship, you must delete
+		// the events prior to deleting registrants
 		eventRepo.deleteAll();
 		registrantRepo.deleteAll();
 		categoryRepo.deleteAll();
-		
-		//Getting the count from the repo has some effect on flushing the tables. 
-		//If we don't ask for this count, we get a DataIntegrityViolationException from what seems like a constraint that isn't removed in deleteAll().
-		assertEquals(this.eventRepo.count(),0);
-		assertEquals(this.registrantRepo.count(),0);
-		assertEquals(this.categoryRepo.count(),0);
-		addThreeCategories();		
+
+		// Getting the count from the repo has some effect on flushing the
+		// tables.
+		// If we don't ask for this count, we get a
+		// DataIntegrityViolationException from what seems like a constraint
+		// that isn't removed in deleteAll().
+		assertEquals(this.eventRepo.count(), 0);
+		assertEquals(this.registrantRepo.count(), 0);
+		assertEquals(this.categoryRepo.count(), 0);
+		addThreeCategories();
 	}
 
 	private void addThreeCategories() {
@@ -59,32 +63,32 @@ public class CategoryRepositoryIntegrationTest {
 		this.categoryRepo.save(dining);
 		this.categoryRepo.save(others);
 	}
-	
+
 	@Test
 	public void testSavesCategoryCorrectly() {
-		
-		assertEquals(this.categoryRepo.count(),3);	
+
+		assertEquals(this.categoryRepo.count(), 3);
 	}
-	
+
 	@Test
 	public void testDuplicatedCategory() {
 		Category sports = new Category("Sports");
-		
-		try{
+
+		try {
 			this.categoryRepo.save(sports);
 			fail();
-		}catch(org.springframework.dao.DataIntegrityViolationException e){
-			
+		} catch (org.springframework.dao.DataIntegrityViolationException e) {
+
 		}
 	}
-	
+
 	@Test
 	public void testSearchCategoryByName() {
-			
+
 		List<Category> foundCategory = categoryRepo.findByName("Dining");
-		
-		assertEquals(1,foundCategory.size());
+
+		assertEquals(1, foundCategory.size());
 		assertTrue(foundCategory.get(0).getName().equals("Dining"));
 	}
-	
+
 }

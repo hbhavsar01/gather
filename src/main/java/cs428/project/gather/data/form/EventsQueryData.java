@@ -1,10 +1,13 @@
 package cs428.project.gather.data.form;
 
-import cs428.project.gather.validator.*;
+import java.util.HashSet;
+import java.util.Set;
 
-import java.util.*;
-import com.google.gson.*;
 import org.springframework.validation.Errors;
+
+import com.google.gson.Gson;
+
+import cs428.project.gather.validator.AbstractValidator;
 
 public class EventsQueryData {
 	public static final String LONGITUDE_FIELD_NAME = "longitude";
@@ -88,4 +91,3 @@ public class EventsQueryData {
 		this.useRegistrantProfile = useRegistrantProfile;
 	}
 }
-

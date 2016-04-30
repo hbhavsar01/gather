@@ -5,12 +5,12 @@ import javax.servlet.http.HttpSession;
 
 import cs428.project.gather.data.model.Actor;
 
-
 public final class ActorStateUtility {
 	private static final String ACTOR_KEY_NAME = "actor";
 	private static final String AUTHENTICATED_KEY_NAME = "authenticated";
 
-	private ActorStateUtility() { }
+	private ActorStateUtility() {
+	}
 
 	public static Actor retrieveActorFromSession(HttpServletRequest request) {
 		Actor actor = null;
@@ -20,14 +20,14 @@ public final class ActorStateUtility {
 
 		HttpSession session = request.getSession(false);
 		if (session != null) {
-			actor = (Actor)session.getAttribute(ACTOR_KEY_NAME);
+			actor = (Actor) session.getAttribute(ACTOR_KEY_NAME);
 		}
 		return actor;
 	}
 
 	public static void storeActorInSession(HttpServletRequest request, Actor actor) {
 		HttpSession session = null;
-		if(request == null) {
+		if (request == null) {
 			throw new IllegalArgumentException("The request cannot be null.");
 		}
 
@@ -43,11 +43,11 @@ public final class ActorStateUtility {
 	}
 
 	public static Actor retrieveActorFromRequest(HttpServletRequest request) {
-		if(request == null) {
+		if (request == null) {
 			throw new IllegalArgumentException("The request cannot be null.");
 		}
 
-		return (Actor)request.getAttribute(ACTOR_KEY_NAME);
+		return (Actor) request.getAttribute(ACTOR_KEY_NAME);
 	}
 
 	public static void storeActorInRequest(HttpServletRequest request, Actor actor) {
@@ -82,7 +82,7 @@ public final class ActorStateUtility {
 	}
 
 	public static boolean retrieveAuthenticatedStateInRequest(HttpServletRequest request) {
-		return (boolean)request.getAttribute(AUTHENTICATED_KEY_NAME);
+		return (boolean) request.getAttribute(AUTHENTICATED_KEY_NAME);
 	}
 
 }

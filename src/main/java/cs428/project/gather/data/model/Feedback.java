@@ -1,6 +1,5 @@
 package cs428.project.gather.data.model;
 
-
 import java.sql.Timestamp;
 
 import javax.persistence.Entity;
@@ -14,7 +13,8 @@ public class Feedback {
 	private int rating;
 	private Timestamp datetime;
 
-	protected Feedback() {}
+	protected Feedback() {
+	}
 
 	public Feedback(String review, int rating, Timestamp datetime) {
 		this.setReview(review);

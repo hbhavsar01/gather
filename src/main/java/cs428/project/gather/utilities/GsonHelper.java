@@ -11,17 +11,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 
 public class GsonHelper {
-	
-	public static Gson getGson(){
+
+	public static Gson getGson() {
 		GsonBuilder builder = new GsonBuilder();
 		builder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
 			// Register an adapter to manage the date types as long values
 			@Override
-			public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+			public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+					throws JsonParseException {
 				return new Date(json.getAsJsonPrimitive().getAsLong());
 			}
 		});
 		return builder.create();
 	}
-	
+
 }

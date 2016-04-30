@@ -1,12 +1,11 @@
 package cs428.project.gather.data.form;
 
-import cs428.project.gather.validator.*;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.springframework.validation.Errors;
-import com.google.gson.*;
+
+import com.google.gson.Gson;
+
+import cs428.project.gather.validator.AbstractValidator;
 
 public class SignInData {
 	public static final String EMAIL_FIELD_NAME = "email";

@@ -8,7 +8,6 @@ import org.springframework.boot.context.embedded.ServletRegistrationBean;
 import org.springframework.context.annotation.*;
 import org.springframework.web.servlet.config.annotation.*;
 
-
 @Configuration
 public class WebConfiguration extends WebMvcConfigurerAdapter {
 	@Bean

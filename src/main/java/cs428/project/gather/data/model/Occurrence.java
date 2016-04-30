@@ -1,12 +1,10 @@
 package cs428.project.gather.data.model;
 
-
 import java.sql.Timestamp;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 
 import org.springframework.util.Assert;
 
@@ -16,7 +14,8 @@ public class Occurrence {
 	private String description;
 	private Timestamp timestamp;
 
-	private Occurrence() {}
+	private Occurrence() {
+	}
 
 	public Occurrence(String description, Timestamp datetime) {
 		this.description = description;

@@ -1,12 +1,13 @@
 package cs428.project.gather.data.form;
 
-import cs428.project.gather.validator.*;
+import java.util.Set;
 
-import java.util.*;
-import org.apache.commons.lang3.*;
-import org.apache.commons.lang3.builder.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.Errors;
-import com.google.gson.*;
+
+import com.google.gson.Gson;
+
+import cs428.project.gather.validator.AbstractValidator;
 
 public class RegistrationData {
 	public static final String EMAIL_FIELD_NAME = "email";
@@ -98,4 +99,3 @@ public class RegistrationData {
 		this.showEventsAroundZipCode = showEventsAroundZipCode;
 	}
 }
-

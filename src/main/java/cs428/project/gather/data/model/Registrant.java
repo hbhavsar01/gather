@@ -1,28 +1,35 @@
 package cs428.project.gather.data.model;
 
-import cs428.project.gather.data.form.*;
-import cs428.project.gather.data.repo.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import java.util.*;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
-import com.fasterxml.jackson.annotation.*;
 
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import cs428.project.gather.data.form.EventsQueryData;
+import cs428.project.gather.data.form.RegistrationData;
+import cs428.project.gather.data.repo.CategoryRepository;
+import cs428.project.gather.data.repo.EventRepository;
+import cs428.project.gather.data.repo.RegistrantRepository;
 
 @Entity
 public class Registrant extends Actor {
-	private @Column(nullable=false) String password;
-	private @Column(unique = true, nullable=false) String displayName;
-	private @Column(unique = true, nullable=false) String email;
+	private @Column(nullable = false) String password;
+	private @Column(unique = true, nullable = false) String displayName;
+	private @Column(unique = true, nullable = false) String email;
 	private int defaultTimeWindow = 1;
 	private int defaultZip = 90210;
-	private @Column(nullable=false) boolean showEventsAroundZipCode = false;
+	private @Column(nullable = false) boolean showEventsAroundZipCode = false;
 
 	@JsonIgnore
 	@ManyToMany(mappedBy = "subscribers", fetch = FetchType.EAGER)
@@ -43,8 +50,7 @@ public class Registrant extends Actor {
 		super(ActorType.REGISTERED_USER);
 	}
 
-	public Registrant(String email, String password, String displayName, int defaultTimeWindow,
-			int defaultZip) {
+	public Registrant(String email, String password, String displayName, int defaultTimeWindow, int defaultZip) {
 		super(ActorType.REGISTERED_USER);
 		this.password = password;
 		this.displayName = displayName;
@@ -135,21 +141,23 @@ public class Registrant extends Actor {
 		List<String> prefs = new ArrayList<String>();
 		for (Category c : Collections.unmodifiableSet(preferences)) {
 			prefs.add(c.getName());
-		} return prefs;
+		}
+		return prefs;
 	}
 
-	public static Registrant buildRegistrantFrom(RegistrationData registrationData, CategoryRepository categoryRepo, Errors errors) {
+	public static Registrant buildRegistrantFrom(RegistrationData registrationData, CategoryRepository categoryRepo,
+			Errors errors) {
 		return (new Registrant()).updateUsing(registrationData, categoryRepo, errors);
 	}
 
 	public Event joinEvent(EventsQueryData joinEventData, EventRepository eventRepo, Errors errors) {
 		Long eventId = joinEventData.getEventId();
 		Event eventToJoin = eventRepo.findOne(eventId);
-		if(eventToJoin == null){
+		if (eventToJoin == null) {
 			errors.reject("-5", "Event not found. Perhaps the event was removed by the owner.");
 			return null;
 		}
-		if(!eventToJoin.addParticipant(this)){
+		if (!eventToJoin.addParticipant(this)) {
 			errors.reject("-8", "Server error. Failed to join event.");
 			return null;
 		}
@@ -160,7 +168,7 @@ public class Registrant extends Actor {
 	public Event removeEvent(EventsQueryData removeEventData, EventRepository eventRepo, Errors errors) {
 		Long eventId = removeEventData.getEventId();
 		Event targetEvent = eventRepo.findOne(eventId);
-		if (! targetEvent.containsOwner(this, errors)){
+		if (!targetEvent.containsOwner(this, errors)) {
 			return targetEvent;
 		}
 
@@ -217,17 +225,16 @@ public class Registrant extends Actor {
 	public Event leaveEvent(EventsQueryData leaveEventData, EventRepository eventRepo, Errors errors) {
 		Long eventId = leaveEventData.getEventId();
 		Event eventToLeave = eventRepo.findOne(eventId);
-		if(eventToLeave == null){
+		if (eventToLeave == null) {
 			errors.reject("-5", "Event not found. Perhaps the event was removed by the owner.");
 			return null;
 		}
 		Set<Registrant> owners = eventToLeave.getOwners();
-		if(owners.contains(this)){
-			if(owners.size() < 2){
+		if (owners.contains(this)) {
+			if (owners.size() < 2) {
 				errors.reject("-3", "Cannot leave event. You are the sole owner. Add a co-owner or remove the event.");
 				return null;
-			}
-			else{
+			} else {
 				eventToLeave.removeOwner(this);
 			}
 		}
@@ -236,28 +243,33 @@ public class Registrant extends Actor {
 		return eventToLeave;
 	}
 
-	public boolean validateUserDependentFields(RegistrationData updateInfo, RegistrantRepository registrantRepo, Errors errors) {
-		if (updateInfo.getPassword() != null && ! updateInfo.getOldPassword().equals(getPassword())) {
+	public boolean validateUserDependentFields(RegistrationData updateInfo, RegistrantRepository registrantRepo,
+			Errors errors) {
+		if (updateInfo.getPassword() != null && !updateInfo.getOldPassword().equals(getPassword())) {
 			errors.reject("-3", "The old password for confirmation is incorrect; cannot update to new password.");
 			return false;
 		}
 
-		// We can only claim this email if there is no OTHER user that also has this email already
+		// We can only claim this email if there is no OTHER user that also has
+		// this email already
 		if (updateInfo.getEmail() != null) {
 			Registrant otherUser = registrantRepo.findOneByEmail(updateInfo.getEmail());
-			if (otherUser != null && ! otherUser.equals(this)) {
+			if (otherUser != null && !otherUser.equals(this)) {
 				String message = "Field invalid-" + RegistrationData.EMAIL_FIELD_NAME;
-				errors.reject("-4", message+":The email address already exists and claimed by another user.  Please enter another email address.");
+				errors.reject("-4", message
+						+ ":The email address already exists and claimed by another user.  Please enter another email address.");
 				return false;
 			}
 		}
 
-		// We can only claim this displayName if there is no OTHER user that also has this displayName already
+		// We can only claim this displayName if there is no OTHER user that
+		// also has this displayName already
 		if (updateInfo.getDisplayName() != null) {
 			Registrant otherUser = registrantRepo.findByDisplayName(updateInfo.getDisplayName());
-			if (otherUser!=null) {
+			if (otherUser != null) {
 				String message = "Field invalid-" + RegistrationData.DISPLAY_NAME_FIELD_NAME;
-				errors.reject("-4",message+":The display name already exists and claimed by another user.  Please enter another display name.");
+				errors.reject("-4", message
+						+ ":The display name already exists and claimed by another user.  Please enter another display name.");
 				return false;
 			}
 		}

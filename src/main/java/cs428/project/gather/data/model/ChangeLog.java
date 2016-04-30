@@ -1,6 +1,5 @@
 package cs428.project.gather.data.model;
 
-
 import java.sql.Timestamp;
 
 import javax.persistence.Entity;
@@ -17,8 +16,9 @@ public class ChangeLog {
 
 	@ManyToOne
 	private Registrant registrant;
-	
-	protected ChangeLog() {}
+
+	protected ChangeLog() {
+	}
 
 	public ChangeLog(String changeType, String additionalInfo, Timestamp datetime) {
 		this.setChangeType(changeType);
