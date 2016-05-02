@@ -15,13 +15,11 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 	var map = buildMap();
 
 	var eventSearchRadiusInMiles = 10.0;
-	var eventSearchRadiusInMeters = eventSearchRadiusInMiles * 1609.34;
-
+	// var uCoordinates = null;
 	var currentUserCoordinates = null;
 	var userMarker = null;
 	var eventMarker = null;
 	var searchRadiusCircle = null;
-	var userCoordinates = null;
 
 	var geolocationSupported = (navigator.geolocation ? true : false);
 
@@ -52,15 +50,16 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 
 	function determineUserCoordinates(successCallback, failureCallback) {
 		navigator.geolocation.getCurrentPosition(function(currentPosition) {
-			userCoordinates = {
+			
+			CurrentUserCoordinates = {
 				latitude: currentPosition.coords.latitude,
 				longitude: currentPosition.coords.longitude
 			}
 
-			map.setView([userCoordinates.latitude, userCoordinates.longitude], 10);
+			map.setView([CurrentUserCoordinates.latitude, CurrentUserCoordinates.longitude], 10);
 
 			if(typeof(successCallback) === "function") {
-				successCallback(userCoordinates);
+				successCallback(CurrentUserCoordinates);
 			}
 		}, function(error) {
 			if(error.code == error.PERMISSION_DENIED) {
@@ -76,28 +75,17 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 		});
 	}
 
+	this.filter = function(hour, category, radius) {
+		getNearByEvents(hour, category, radius)
+	}
+
 	this.performAction = function() {
 		if(geolocationSupported) {
 			// Get and process the user's current location.
 			determineUserCoordinates(function(initialUserCoordinates) {
+				currentUserCoordinates = initialUserCoordinates
 				try {
-					processUserCoordinates(initialUserCoordinates);
-
-					// Update every 10 seconds.
-//					var updateIntervalID = setInterval(function() {
-//
-//						determineUserCoordinates(function(updatedUserCoordinates) {
-//
-//							try {
-//								processUserCoordinates(updatedUserCoordinates);
-//							}
-//							catch(updatedException) {
-//								clearInterval(updateIntervalID);
-//
-//								doStandardExceptionHandling(updatedException);
-//							}
-//						});
-//					}, 10000);
+					processUserCoordinates();
 				}
 				catch(initialException) {
 					doStandardExceptionHandling(initialException);
@@ -113,9 +101,8 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 
 	var geolocationErrorCount = 0;
 
-	function processUserCoordinates(uCoordinates) {
-		userCoordinates = uCoordinates
-		if(userCoordinates == null) {
+	function processUserCoordinates(hour, categories, radius) {
+		if(CurrentUserCoordinates == null) {
 			geolocationErrorCount++;
 
 			if(geolocationErrorCount > 2) {
@@ -125,28 +112,32 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 		else {
 			geolocationErrorCount = 0;
 
-			if(currentUserCoordinates === null || currentUserCoordinates.latitude !== userCoordinates.latitude || currentUserCoordinates.longitude !== userCoordinates.longitude) {
-				var currentZoomLevel = map.getZoom();
-
-				if(typeof(currentZoomLevel) !== "number") {
-					currentZoomLevel = 13;
-				}
-
-				map.setView([userCoordinates.latitude, userCoordinates.longitude], currentZoomLevel);
-
-				placeUserMarker(userCoordinates);
-				getNearByEvents();
-				currentUserCoordinates = userCoordinates;
-				if (gather.global.session.signedIn == true){
-					joinedEvents();
-					ownedEvents();
-				}
+			placeUserMarker();
+			getNearByEvents(hour, categories, radius);
+			currentUserCoordinates = CurrentUserCoordinates;
+			if (gather.global.session.signedIn == true){
+				joinedEvents();
+				ownedEvents();
 			}
 		}
 	}
+ 
+	function placeUserMarker() {
+		var markerPosition = new L.LatLng(CurrentUserCoordinates.latitude, CurrentUserCoordinates.longitude);
 
-	function placeUserMarker(userCoordinates) {
-		var markerPosition = new L.LatLng(userCoordinates.latitude, userCoordinates.longitude);
+		if (eventSearchRadiusInMiles >= 50) {
+				currentZoomLevel = 10;
+			} else if (eventSearchRadiusInMiles >= 25) {
+				currentZoomLevel = 10;
+			} else if (eventSearchRadiusInMiles >= 10) {
+				currentZoomLevel = 11;
+			} else if (eventSearchRadiusInMiles >= 5) {
+				currentZoomLevel = 12;
+			} else {
+				currentZoomLevel = 13;
+			}
+
+		map.setView([CurrentUserCoordinates.latitude, CurrentUserCoordinates.longitude], currentZoomLevel);
 
 		if(userMarker === null) {
 			var iconOptions = {
@@ -166,6 +157,8 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 			userMarker.setLatLng(markerPosition);
 		}
 
+		var eventSearchRadiusInMeters = eventSearchRadiusInMiles * 1609.34;
+
 		if(searchRadiusCircle === null) {
 			var searchRadiusCircleOptions = {
 				clickable: false,
@@ -173,38 +166,24 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 				fillColor: "#40A3FE",
 				fillOpacity: 0.2
 			};
-
+			
 			searchRadiusCircle = L.circle(markerPosition, eventSearchRadiusInMeters, searchRadiusCircleOptions);
 			searchRadiusCircle.addTo(map);
 		}
 		else {
 			searchRadiusCircle.setLatLng(markerPosition);
+			searchRadiusCircle.setRadius(eventSearchRadiusInMeters);
 		}
 
-		setUserMarkerPopup(userCoordinates);
+		setUserMarkerPopup();
 	}
 
-	function setUserMarkerPopup(userCoordinates) {
+	function setUserMarkerPopup() {
 		var simpleUserMarkerHTML = $("#simple-user-marker-content-template").html();
-		simpleUserMarkerHTML = sprintf(simpleUserMarkerHTML, userCoordinates.latitude, userCoordinates.longitude);
+		simpleUserMarkerHTML = sprintf(simpleUserMarkerHTML, CurrentUserCoordinates.latitude, CurrentUserCoordinates.longitude);
 
 		userMarker.bindPopup(simpleUserMarkerHTML);
 	}
-
-
-	function submitFeedbackForm() {
-		var modalForm = $("#feedback-modal");
-		var locationID = modalForm.data("locationID");
-
-		submitFeedback(locationID, function() {
-			modalForm.modal("hide");
-		}, function() {
-			modalForm.modal("hide");
-
-			displayGeneralFailureModal();
-		});
-	}
-
 
 	function isSameCoordinates(coordinates, anotherCoordinates) {
 		var sameCoordinates = false;
@@ -533,7 +512,6 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 				} else if (validateEventDescription(eventDescription) == false) {
 					$('#formEventFeedback').html('Event description must be between than 5 and 120 characters');
 				} else {
-					event.preventDefault();
 					storeEventFormData();
 					submitEventForm();
 					clearEventForm();
@@ -648,7 +626,6 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 				eventDescription: eventData.newEventFormData.eventDescription,
 				eventCategory: eventData.newEventFormData.eventCategory,
 				eventOccurrences: eventData.newEventFormData.eventOccurrences,
-				callerCoordinates: currentUserCoordinates
 			};
 			var url = "rest/events"
 		} else {
@@ -659,7 +636,6 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 				eventDescription: eventData.description,
 				eventCategory: eventData.category.name,
 				eventOccurrences: eventData.occurrenceTimestamps,
-				callerCoordinates: currentUserCoordinates
 			};
 			var url = "rest/events/update"
 		}
@@ -760,17 +736,38 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 		var establishedEventHTML = establishedEventContent[0].outerHTML;
 
 
-		//var unixtime = anEvent.occurrences[0].timestamp;
 		refreshOccurrenceTimestamps(anEvent);
-		var unixtime = anEvent.occurrenceTimestamps[0];
+		var unixtime = mostRecentOccurrence(anEvent.occurrences)
 		var datetime = new Date( unixtime );
 		var time = datetime.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'});
 		var date = datetime.toLocaleDateString();
-		timeDisplay = date + ', ' + time 
-		establishedEventHTML = sprintf(establishedEventHTML, anEvent.id, anEvent.name, anEvent.category.name, anEvent.description, timeDisplay, distanceFromCaller);
+		var timeDisplay = date + ', ' + time 
+		var url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + eCoordinates.latitude + "," + eCoordinates.longitude + "&key=AIzaSyCh3wRAk3nGvfqUwC2SjkqVBX5AwUGh8KE"
+		var full_address = ''
+		$.ajax({
+			    // async: false, //commented to enhance performance by 3 seconds!
+			    url: url,
+			    dataType: "json",
+			    success: function(data) {
+				    if (data.status == 'ZERO_RESULTS') {
+						full_address = 'Address not found'
 
-		eventMarker.bindPopup(establishedEventHTML, popupOptions);
+					} else if (data.status == 'OK') {
+						// always return the first result which is most relevant.
+						full_address = data.results[0].formatted_address;
+					} else if (data.status == 'OVER_QUERY_LIMIT') {
+						full_address = 'Our server has daily limited address query from Google.'
+					}
+					establishedEventHTML = sprintf(establishedEventHTML, anEvent.id, anEvent.name, anEvent.category.name, timeDisplay, full_address, distanceFromCaller, anEvent.description);
+					eventMarker.bindPopup(establishedEventHTML, popupOptions);
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+                    var responseMessage = $.parseJSON(jqXHR.responseText).message;
+                    alert(responseMessage);
+                }
+			});	
 	}
+
 
 	function isCurrentUserOnwer(owners){
 		var result=false;
@@ -792,8 +789,38 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 		return result;
 	}
 	
-	function getNearByEvents() {
-		var hour = 730;
+	function getNearByEvents(hour, categories, radius) {
+		if (typeof hour === "undefined" || hour === null) { 
+		    hour = 730;
+		}
+		if (typeof categories === "undefined" || categories === null) { 
+		    categories = [""]
+		}
+		if (typeof radius === "undefined" || radius === null) { 
+		    radius = eventSearchRadiusInMiles
+		} else {
+			eventSearchRadiusInMiles = radius
+		}
+
+		var data = '  '
+
+		data = data + '"latitude" : ' + CurrentUserCoordinates.latitude + ', '
+		data = data + '"longitude" : ' + CurrentUserCoordinates.longitude + ', '
+		data = data + '"radiusMi": ' + radius + ', '
+		data = data + '"hour": ' + hour + ', '
+
+		if (emptyStringArray(categories)) {
+			data = data + '"categories": ['
+			for (var i = 0; i < categories.length; i++) {
+				if (categories[i] !== "") {
+					data = data + '"' + categories[i] + '", '
+				}
+			}
+			data = data.slice(0,-2)  // removing the last comma
+			data = data + '], '
+		}
+
+		data = data.slice(0,-2)  // removing the last comma
 
 		$.ajax({
 		 	accepts: "application/json",
@@ -801,11 +828,12 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 			url : "rest/events",
 			contentType: "application/json; charset=UTF-8",
 			dataType: "json",
-			data : '{ "latitude" : ' + userCoordinates.latitude + ', "longitude" : ' + userCoordinates.longitude + ', "radiusMi": ' + eventSearchRadiusInMiles + ', "hour": ' + hour + ' }',
+			data : '{'+data+'}',
+			async: false,
 			success : function(returnvalue) {
 				signedIn = true;
 				gather.global.nearEvents = returnvalue.results;
-				
+				placeUserMarker();
 				refreshEventListAndMarkers();
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -853,6 +881,7 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 			type : "GET",
 			url : "/rest/events/userJoined",
 			contentType: "application/json; charset=UTF-8",
+			async: false,
 			success : function(returnvalue) {
 				gather.global.joinedEvents = returnvalue.results;
 			},
@@ -878,6 +907,7 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 			type : "GET",
 			url : "/rest/events/userOwned",
 			contentType: "application/json; charset=UTF-8",
+			async: false,
 			success : function(returnvalue) {
 				gather.global.ownedEvents = returnvalue.results;
 			},
@@ -897,43 +927,41 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 		});
 	}
 
-	this.determineCoordByZipCode = function(zipCode){
+	this.determineCoordByZipCode = function(zipCode, showmap, defaultTimeWindow, categories, radius){
 		// using Google API for zip search because mapbox is awfully inaccurate.
 		// What Souhayl had was great but this is 100 times faster.
+		if (typeof showmap === "undefined" || showmap === null) { 
+			showmap = true; 
+		}
 		var url = "http://maps.googleapis.com/maps/api/geocode/json?sensor=true&components=country:US|postal_code:"+zipCode
-		$.get(url, function (data){
-			if (data.status == 'ZERO_RESULTS') {
-				return -1;
-			} else if (data.status == 'OK') {
-				uCoordinates = {
-					latitude: data.results[0].geometry.location.lat,
-					longitude: data.results[0].geometry.location.lng
+		var flag = false
+		$.ajax({
+			async: false,
+			url: url,
+			dataType: "json",
+			success: function(returnvalue) {
+				if (returnvalue.status == 'ZERO_RESULTS') {
+					flag = false;
+				} else if (returnvalue.status == 'OK') {
+					CurrentUserCoordinates = {
+						latitude: returnvalue.results[0].geometry.location.lat,
+						longitude: returnvalue.results[0].geometry.location.lng
+					}
+					currentUserCoordinates = CurrentUserCoordinates;
+					if (showmap) {
+						processUserCoordinates(defaultTimeWindow, categories, radius);
+					}
+					flag = true;
 				}
-				processUserCoordinates(uCoordinates);
-				return 0;
-			}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+                var responseMessage = $.parseJSON(jqXHR.responseText).message;
+                alert(responseMessage);
+            }
 		});
+		return flag
 	}
 	
-	this.determineAddressByCoord = function(lat, lng){
-		var url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + lat + "," + lng + "&key=AIzaSyCh3wRAk3nGvfqUwC2SjkqVBX5AwUGh8KE"
-		var full_address = ''
-		$.ajax({
-			  async: false,
-			  url: url,
-			  dataType: "json",
-			  success: function(data) {
-				  if (data.status == 'ZERO_RESULTS') {
-						full_address = 'Address not found'
-					} else if (data.status == 'OK') {
-						// always return the first result which is most relevant.
-						full_address = data.results[0].formatted_address;
-					}
-				}
-			});	
-		return full_address;
-	}
-
 	function displayGeolocationUnsupportedModal() {
 		$("#geolocation-unsupported-modal").modal("show");
 	}
@@ -1160,6 +1188,8 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 			modalForm.data("eventDataID", eventID);
 			owner_list = createCommaList(eventData.owners);
 			participant_list = createCommaList(eventData.participants);
+			gather.global.allDisplayName=[];
+			$('#search-display-name').val('');
 			setupDisplayNamesAutocomplete("rest/registrants/displayname");
             console.log(JSON.stringify(gather.global.allDisplayName));
 			if (typeof(eventData.id) === "number") {
@@ -1224,13 +1254,13 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 	
 	function refreshEventListAndMarkers(){		
 		if (gather.global.currentEventList == ViewingNearByEvents){
-			loadEventsFirstView(userCoordinates);
+			loadEventsFirstView(currentUserCoordinates);
 			refreshEventMarkers(gather.global.nearEvents);
 		} else if (gather.global.currentEventList == ViewingJoinedEvents){
-			loadJoinedEvents(userCoordinates);
+			loadJoinedEvents(currentUserCoordinates);
 			refreshEventMarkers(gather.global.joinedEvents);
 		} else if(gather.global.currentEventList == ViewingOwnedEvents){
-			loadOwnedEvents(userCoordinates);
+			loadOwnedEvents(currentUserCoordinates);
 			refreshEventMarkers(gather.global.ownedEvents);
 		} else {
 			displayGeneralFailureModal();
@@ -1296,11 +1326,13 @@ function MapManager(mapboxAccessToken, mapboxMapID) {
 				var eventDataID = modalForm.data("eventDataID");
 				updateParticipantsAndOwners(eventDataID, ownerArray, participantArray,
 						function(event){
+							$("#formParticipantFeedback").css("color", "green")
 							$("#formParticipantFeedback").html("<b><u>"+event.name+"</u></b> updated successfully.");
 							refreshEventGlobalVariables();
 							refreshEventListAndMarkers();
 						},
 						function(jqXHR, textStatus, errorThrown){
+							$("#formParticipantFeedback").css("color", "red")
 							var responseMessage = $.parseJSON(jqXHR.responseText).message;
                             $('#formParticipantFeedback').html(responseMessage);
 						});

@@ -11,6 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
+/***
+ * 
+ * @author Team Gather
+ *
+ * This class serves as a superclass to EventDataValidators providing a common interface and set of helper methods.
+ */
 @Component
 public abstract class AbstractEventDataValidator extends AbstractValidator {
 	@Autowired
@@ -24,7 +30,6 @@ public abstract class AbstractEventDataValidator extends AbstractValidator {
 	abstract boolean nullCategoryCheck(String category, Errors errors);
 	abstract boolean nullDescriptionCheck(String description, Errors errors);
 	abstract boolean nullEventCoordinatesCheck(Coordinates eventCoords, Errors errors);
-	abstract boolean nullCallerCoordinatesCheck(Coordinates callerCoords, Errors errors);
 	
 	protected void validateEventName(NewEventData newEventData, Errors errors) {
 		String eventName = newEventData.getEventName();
@@ -97,24 +102,6 @@ public abstract class AbstractEventDataValidator extends AbstractValidator {
 		else if(eventCoords.getLongitude() < -180 || eventCoords.getLongitude() > 180)
 		{
 			String message = "Field invalid-" + NewEventData.EVENT_COORDS_FIELD_NAME;
-			errors.reject("-3", message+":The longitude value is out of range.");
-		}
-	}
-
-	protected void validateCallerCoordinates(NewEventData newEventData, Errors errors) {
-		Coordinates callerCoords = newEventData.getCallerCoodinates();
-		if(this.nullEventCoordinatesCheck(callerCoords, errors))
-		{
-			return;
-		}
-		else if(callerCoords.getLatitude() < -90 || callerCoords.getLatitude() > 90)
-		{
-			String message = "Field invalid-" + NewEventData.CALLER_COORDS_FIELD_NAME;
-			errors.reject("-3", message+":The latitude value is out of range.");
-		}
-		else if(callerCoords.getLongitude() < -180 || callerCoords.getLongitude() > 180)
-		{
-			String message = "Field invalid-" + NewEventData.CALLER_COORDS_FIELD_NAME;
 			errors.reject("-3", message+":The longitude value is out of range.");
 		}
 	}

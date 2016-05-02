@@ -8,6 +8,14 @@ import org.springframework.util.Assert;
 
 import cs428.project.gather.data.Coordinates;
 
+/**
+ * 
+ * @author Team Gather
+ * 
+ * This is the Location class used for constructing Location objects which are then used for Events
+ *
+ */
+
 @Entity
 public class Location {
 	private @Id @GeneratedValue Long id;
@@ -22,19 +30,9 @@ public class Location {
 	
 	protected Location() {}
 	
-	public Location(String description) {
-		Assert.hasText(description);
-		this.setDescription(description);
-	}
-	
 	public Location(Coordinates coords){
 		this.latitude = coords.getLatitude();
 		this.longitude = coords.getLongitude();
-	}
-	
-	public Location(double latitude, double longitude){
-		this.latitude = latitude;
-		this.longitude = longitude;
 	}
 	
 	public Location(String description, String streetAddr, String city, String state, String zipCode, double latitude, double longitude){

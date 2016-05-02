@@ -10,6 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
+/**
+ * 
+ * @author Team Gather
+ *
+ * This class validates UpdateEventData and ensures that the target event exists, and validates the new name, coordinates, description, category, participants and owners.
+ *
+ */
 @Component
 public class UpdateEventDataValidator extends AbstractEventDataValidator {
 	@Autowired
@@ -41,7 +48,6 @@ public class UpdateEventDataValidator extends AbstractEventDataValidator {
 			validateEventCoords(updateEventData, errors);
 			validateEventDescription(updateEventData, errors);
 			validateEventCategory(updateEventData, errors);
-			validateCallerCoordinates(updateEventData, errors);
 			validateParticipantsExists(updateEventData, errors);
 			validateOwnersExists(updateEventData, errors);
 		}
@@ -118,12 +124,5 @@ public class UpdateEventDataValidator extends AbstractEventDataValidator {
 		if(eventCoords==null) return true;
 		return false;
 	}
-
-	@Override
-	boolean nullCallerCoordinatesCheck(Coordinates callerCoords, Errors errors) {
-		if(callerCoords==null) return true;
-		return false;
-	}
-
 	
 }

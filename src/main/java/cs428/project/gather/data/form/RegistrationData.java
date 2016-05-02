@@ -8,11 +8,22 @@ import org.apache.commons.lang3.builder.*;
 import org.springframework.validation.Errors;
 import com.google.gson.*;
 
+/**
+ * 
+ * @author Team Gather
+ * This class represents the data object to create new registrants 
+ * 
+ */
 public class RegistrationData {
+	/**
+	 * Public static names for validator getting the field names
+	 */
 	public static final String EMAIL_FIELD_NAME = "email";
 	public static final String PASSWORD_FIELD_NAME = "password";
 	public static final String OLD_PASSWORD_FIELD_NAME = "oldPassword";
 	public static final String DISPLAY_NAME_FIELD_NAME = "displayName";
+	public static final String RADIUS_MI_FIELD_NAME = "radiusMi";
+	public static final float MAX_RADIUS = 50f;
 
 	private String email;
 	private String password;
@@ -20,8 +31,20 @@ public class RegistrationData {
 	private String displayName;
 	private int defaultTimeWindow = 1;
 	private int defaultZip = -1;
+	private int defaultRadiusMi = 5;
 	private Set<String> preferences;
+	private Boolean showEventsAroundZipCode;
 
+	/**
+	 * Parse the raw JSON data in String and validate the data, then set the 
+	 * Error code accordingly.
+	 * 
+	 * @param rawData: The raw JSON data in String
+	 * @param validator: The validator object to validate the input data
+	 * @param errors: The error object to pass to the validator for different error code 
+	 * @return: A paginated bad request response based on the binding result.
+	 * 
+	 */
 	public static RegistrationData parseIn(String rawData, AbstractValidator validator, Errors errors) {
 		System.out.println("rawData: " + rawData);
 		RegistrationData registrationData = (new Gson()).fromJson(rawData, RegistrationData.class);
@@ -29,6 +52,13 @@ public class RegistrationData {
 		return registrationData;
 	}
 
+	/**
+	 * Validate this object and save the Error status
+	 * 
+	 * @param validator: The validator object to validate the input data
+	 * @param errors: The error object to pass to the validator for different error code 
+	 * 
+	 */
 	public void validate(AbstractValidator validator, Errors errors) {
 		validator.validate(this, errors);
 	}
@@ -73,6 +103,14 @@ public class RegistrationData {
 		this.defaultZip = defaultZip;
 	}
 
+	public int getDefaultRadiusMi() {
+		return defaultRadiusMi;
+	}
+
+	public void setDefaultRadiusMi(int defaultRadiusMi) {
+		this.defaultRadiusMi = defaultRadiusMi;
+	}
+
 	public String getEmail() {
 		return email;
 	}
@@ -89,27 +127,12 @@ public class RegistrationData {
 		this.preferences = preferences;
 	}
 
-	@Override
-	public int hashCode() {
-		HashCodeBuilder builder = new HashCodeBuilder();
-		builder.append(email);
-		return builder.toHashCode();
+	public Boolean getShowEventsAroundZipCode() {
+		return showEventsAroundZipCode;
 	}
 
-	@Override
-	public boolean equals(Object anotherObject) {
-		boolean equal = false;
-		if(anotherObject == this) {
-			equal = true;
-		} else if (anotherObject != null && anotherObject.getClass().equals(this.getClass())) {
-			RegistrationData anotherUserRegistrationData = (RegistrationData)anotherObject;
-			EqualsBuilder equalsBuilder = new EqualsBuilder();
-			equalsBuilder.append(this.email, anotherUserRegistrationData.email);
-			equalsBuilder.append(this.password, anotherUserRegistrationData.password);
-			equalsBuilder.append(this.displayName, anotherUserRegistrationData.displayName);
-			equal = equalsBuilder.isEquals();
-		}
-		return equal;
+	public void setShowEventsAroundZipCode(Boolean showEventsAroundZipCode) {
+		this.showEventsAroundZipCode = showEventsAroundZipCode;
 	}
 }
 

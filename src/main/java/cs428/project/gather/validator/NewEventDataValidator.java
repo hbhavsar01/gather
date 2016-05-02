@@ -11,6 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
+/***
+ * 
+ * @author Team Gather
+ * 
+ * This class validates the name, coordinates, description, category, and occurrence information when creating a new event.
+ * It also ensures the event to be created will not be a duplicate.
+ *
+ */
 @Component
 public class NewEventDataValidator extends AbstractEventDataValidator {
 	@Autowired
@@ -39,7 +47,6 @@ public class NewEventDataValidator extends AbstractEventDataValidator {
 			validateEventDescription(newEventData, errors);
 			validateEventCategory(newEventData, errors);
 			validateEventOccurrences(newEventData, errors);
-			validateCallerCoordinates(newEventData, errors);
 			validateNotDuplicateEvent(newEventData, errors);
 		}
 
@@ -114,14 +121,4 @@ public class NewEventDataValidator extends AbstractEventDataValidator {
 		return false;
 	}
 
-	@Override
-	boolean nullCallerCoordinatesCheck(Coordinates callerCoords, Errors errors) {
-		if(callerCoords == null)
-		{
-			String message = "Field required-" + NewEventData.CALLER_COORDS_FIELD_NAME;
-			errors.reject("-1", message+":User coordinates is a required field.");
-			return true;
-		}
-		return false;
-	}
 }

@@ -8,13 +8,32 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.springframework.validation.Errors;
 import com.google.gson.*;
 
+/**
+ * 
+ * @author Team Gather
+ * This class represents the data object for signing in 
+ * 
+ */
 public class SignInData {
+	/**
+	 * Public static names for validator getting the field names
+	 */
 	public static final String EMAIL_FIELD_NAME = "email";
 	public static final String PASSWORD_FIELD_NAME = "password";
 
 	private String email;
 	private String password;
 
+	/**
+	 * Parse the raw JSON data in String and validate the data, then set the 
+	 * Error code accordingly.
+	 * 
+	 * @param rawData: The raw JSON data in String
+	 * @param validator: The validator object to validate the input data
+	 * @param errors: The error object to pass to the validator for different error code 
+	 * @return: A paginated bad request response based on the binding result.
+	 * 
+	 */
 	public static SignInData parseIn(String rawData, AbstractValidator validator, Errors errors) {
 		System.out.println("rawData: " + rawData);
 		SignInData signInData = (new Gson()).fromJson(rawData, SignInData.class);
@@ -22,6 +41,13 @@ public class SignInData {
 		return signInData;
 	}
 
+	/**
+	 * Validate this object and save the Error status
+	 * 
+	 * @param validator: The validator object to validate the input data
+	 * @param errors: The error object to pass to the validator for different error code 
+	 * 
+	 */
 	public void validate(AbstractValidator validator, Errors errors) {
 		validator.validate(this, errors);
 	}
@@ -40,32 +66,5 @@ public class SignInData {
 
 	public void setPassword(String password) {
 		this.password = StringUtils.trimToNull(password);
-	}
-
-	@Override
-	public int hashCode() {
-		HashCodeBuilder builder = new HashCodeBuilder();
-
-		builder.append(email);
-
-		int hashCode = builder.toHashCode();
-
-		return hashCode;
-	}
-
-	@Override
-	public boolean equals(Object anotherObject) {
-		boolean equal = false;
-
-		if (anotherObject == this) {
-			equal = true;
-		} else if (anotherObject != null && anotherObject.getClass().equals(this.getClass())) {
-			SignInData anotherSignInData = (SignInData) anotherObject;
-			EqualsBuilder equalsBuilder = new EqualsBuilder();
-			equalsBuilder.append(this.email, anotherSignInData.email);
-			equalsBuilder.append(this.password, anotherSignInData.password);
-			equal = equalsBuilder.isEquals();
-		}
-		return equal;
 	}
 }

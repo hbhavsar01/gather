@@ -22,7 +22,6 @@ import cs428.project.gather.GatherApplication;
 import cs428.project.gather.data.repo.RegistrantRepository;
 import cs428.project.gather.data.repo.CategoryRepository;
 import cs428.project.gather.data.repo.EventRepository;
-import cs428.project.gather.data.repo.LocationRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(GatherApplication.class)
@@ -73,7 +72,7 @@ public class ModelIntegrationTest {
 	@Test
 	public void testSaveLoadParticipants(){
 		
-		Registrant aUser = new Registrant("testuser@email.com","password","testDisplayName",10L,3,10000);
+		Registrant aUser = new Registrant("testuser@email.com","password","testDisplayName",3,10000);
 		Registrant registrantResult = this.registrantRepo.save(aUser);
 		
 		Event testEvent = new Event("Test Event");

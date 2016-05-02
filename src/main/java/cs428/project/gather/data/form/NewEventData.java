@@ -12,22 +12,38 @@ import org.apache.commons.lang3.builder.*;
 import com.google.gson.*;
 import org.springframework.validation.Errors;
 
+/**
+ * 
+ * @author Team Gather
+ * This class represents the data object to create new events 
+ * 
+ */
 public class NewEventData {
+	/**
+	 * Public static names for validator getting the field names
+	 */
 	public static final String EVENT_NAME_FIELD_NAME = "eventName";
 	public static final String EVENT_COORDS_FIELD_NAME = "eventCoordinates";
 	public static final String EVENT_DESCRIPTION_FIELD_NAME = "eventDescription";
 	public static final String EVENT_CATEGORY_FIELD_NAME = "eventCategory";
 	public static final String EVENT_TIME_FIELD_NAME = "eventTime";
-	public static final String CALLER_COORDS_FIELD_NAME = "callerCoordinates";
 
 	private String eventName;
 	private Coordinates eventCoordinates;
 	private String eventDescription;
 	private String eventCategory;
-	//private long eventTime;
 	private List<Long> eventOccurrences = null;
-	private Coordinates callerCoordinates;
 
+	/**
+	 * Parse the raw JSON data in String and validate the data, then set the 
+	 * Error code accordingly.
+	 * 
+	 * @param rawData: The raw JSON data in String
+	 * @param validator: The validator object to validate the input data
+	 * @param errors: The error object to pass to the validator for different error code 
+	 * @return: A paginated bad request response based on the binding result.
+	 * 
+	 */
 	public static NewEventData parseIn(String rawData, AbstractValidator validator, Errors errors) {
 		System.out.println("rawData: " + rawData);
 		NewEventData eventData = (new Gson()).fromJson(rawData, NewEventData.class);
@@ -35,41 +51,15 @@ public class NewEventData {
 		return eventData;
 	}
 
+	/**
+	 * Validate this object and save the Error status
+	 * 
+	 * @param validator: The validator object to validate the input data
+	 * @param errors: The error object to pass to the validator for different error code 
+	 * 
+	 */
 	public void validate(AbstractValidator validator, Errors errors) {
 		validator.validate(this, errors);
-	}
-
-	@Override
-	public int hashCode() {
-		HashCodeBuilder builder = new HashCodeBuilder();
-		builder.append(eventName);
-		builder.append(eventCoordinates);
-		builder.append(eventDescription);
-		builder.append(eventCategory);
-		builder.append(callerCoordinates);
-		int hashCode = builder.toHashCode();
-		return hashCode;
-	}
-
-	@Override
-	public boolean equals(Object anotherObject) {
-		boolean equal = false;
-
-		if (anotherObject == this) {
-			equal = true;
-		} else if (anotherObject != null && anotherObject.getClass().equals(this.getClass())) {
-			NewEventData anotherEventData = (NewEventData) anotherObject;
-			EqualsBuilder equalsBuilder = new EqualsBuilder();
-
-			equalsBuilder.append(this.eventName, anotherEventData.eventName);
-			equalsBuilder.append(this.eventCategory, anotherEventData.eventCoordinates);
-			equalsBuilder.append(this.eventDescription, anotherEventData.eventDescription);
-			equalsBuilder.append(this.callerCoordinates, anotherEventData.callerCoordinates);
-			equalsBuilder.append(this.eventCoordinates, anotherEventData.eventCoordinates);
-
-			equal = equalsBuilder.isEquals();
-		}
-		return equal;
 	}
 
 	public String getEventName() {
@@ -102,18 +92,6 @@ public class NewEventData {
 
 	public void setEventCategory(String eventCategory) {
 		this.eventCategory = eventCategory;
-	}
-
-	public Coordinates getCallerCoodinates() {
-		return callerCoordinates;
-	}
-
-	public void setCallerCoodinates(Coordinates callerCoodinates) {
-		this.callerCoordinates = callerCoodinates;
-	}
-
-	public double distanceFromCaller() {
-		return GeodeticHelper.getDistanceBetweenCoordinates(getCallerCoodinates(), getEventCoodinates());
 	}
 
 	public List<Long> getOccurrences() {
