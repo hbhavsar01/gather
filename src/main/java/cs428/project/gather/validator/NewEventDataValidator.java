@@ -1,28 +1,31 @@
 package cs428.project.gather.validator;
 
-import cs428.project.gather.data.Coordinates;
-import cs428.project.gather.data.form.*;
-import cs428.project.gather.data.model.*;
-import cs428.project.gather.data.repo.*;
-
 import java.sql.Timestamp;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
+
+import cs428.project.gather.data.Coordinates;
+import cs428.project.gather.data.form.NewEventData;
+import cs428.project.gather.data.model.Event;
+import cs428.project.gather.data.repo.CategoryRepository;
+import cs428.project.gather.data.repo.EventRepository;
 
 /***
  * 
  * @author Team Gather
  * 
- * This class validates the name, coordinates, description, category, and occurrence information when creating a new event.
- * It also ensures the event to be created will not be a duplicate.
+ *         This class validates the name, coordinates, description, category,
+ *         and occurrence information when creating a new event. It also ensures
+ *         the event to be created will not be a duplicate.
  *
  */
 @Component
 public class NewEventDataValidator extends AbstractEventDataValidator {
 	@Autowired
-    EventRepository eventRepo;
+	EventRepository eventRepo;
 
 	@Autowired
 	CategoryRepository categoryRepo;
@@ -34,14 +37,11 @@ public class NewEventDataValidator extends AbstractEventDataValidator {
 
 	@Override
 	public void validate(Object target, Errors errors) {
-		NewEventData newEventData = (NewEventData)target;
+		NewEventData newEventData = (NewEventData) target;
 
-		if(newEventData == null)
-		{
+		if (newEventData == null) {
 			throw new IllegalArgumentException("The new event data cannot be null.");
-		}
-		else
-		{
+		} else {
 			validateEventName(newEventData, errors);
 			validateEventCoords(newEventData, errors);
 			validateEventDescription(newEventData, errors);
@@ -53,14 +53,14 @@ public class NewEventDataValidator extends AbstractEventDataValidator {
 	}
 
 	private void validateNotDuplicateEvent(NewEventData newEventData, Errors errors) {
-		if(!errors.hasErrors()){
+		if (!errors.hasErrors()) {
 			String name = newEventData.getEventName();
 			double latitude = newEventData.getEventCoodinates().getLatitude();
 			double longitude = newEventData.getEventCoodinates().getLongitude();
 			Timestamp time = new Timestamp(newEventData.getOccurrences().get(0));
 
 			List<Event> foundEvents = this.eventRepo.findByNameAndLocationAndTime(name, latitude, longitude, time);
-			if(!foundEvents.isEmpty()){
+			if (!foundEvents.isEmpty()) {
 				String message = "Cannot create event. An existing event with the same name, location, and time already exists!";
 				errors.reject("-4", message);
 			}
@@ -69,10 +69,9 @@ public class NewEventDataValidator extends AbstractEventDataValidator {
 
 	@Override
 	boolean nullNameCheck(String eventName, Errors errors) {
-		if(eventName == null)
-		{
+		if (eventName == null) {
 			String message = "Field required-" + NewEventData.EVENT_NAME_FIELD_NAME;
-			errors.reject("-1", message+":Event name is a required field.");
+			errors.reject("-1", message + ":Event name is a required field.");
 			return true;
 		}
 		return false;
@@ -80,7 +79,7 @@ public class NewEventDataValidator extends AbstractEventDataValidator {
 
 	@Override
 	boolean nullOccurrencesCheck(List<Long> eventOccurrences, Errors errors) {
-		if (eventOccurrences == null){
+		if (eventOccurrences == null) {
 			String message = "Cannot update event. Occurrence list is not defined in JSON";
 			errors.reject("-7", message);
 			return true;
@@ -90,10 +89,9 @@ public class NewEventDataValidator extends AbstractEventDataValidator {
 
 	@Override
 	boolean nullCategoryCheck(String category, Errors errors) {
-		if(category == null)
-		{
+		if (category == null) {
 			String message = "Field required-" + NewEventData.EVENT_CATEGORY_FIELD_NAME;
-			errors.reject("-1", message+":Event category is a required field.");
+			errors.reject("-1", message + ":Event category is a required field.");
 			return true;
 		}
 		return false;
@@ -101,10 +99,9 @@ public class NewEventDataValidator extends AbstractEventDataValidator {
 
 	@Override
 	boolean nullDescriptionCheck(String description, Errors errors) {
-		if(description == null)
-		{
+		if (description == null) {
 			String message = "Field required-" + NewEventData.EVENT_DESCRIPTION_FIELD_NAME;
-			errors.reject("-1", message+":Event description is a required field.");
+			errors.reject("-1", message + ":Event description is a required field.");
 			return true;
 		}
 		return false;
@@ -112,10 +109,9 @@ public class NewEventDataValidator extends AbstractEventDataValidator {
 
 	@Override
 	boolean nullEventCoordinatesCheck(Coordinates eventCoords, Errors errors) {
-		if(eventCoords == null)
-		{
+		if (eventCoords == null) {
 			String message = "Field required-" + NewEventData.EVENT_COORDS_FIELD_NAME;
-			errors.reject("-1", message+":Event coordinates is a required field.");
+			errors.reject("-1", message + ":Event coordinates is a required field.");
 			return true;
 		}
 		return false;

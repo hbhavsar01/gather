@@ -5,7 +5,6 @@ import java.sql.Timestamp;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 
 import org.springframework.util.Assert;
 
@@ -13,7 +12,8 @@ import org.springframework.util.Assert;
  * 
  * @author Team Gather
  * 
- * This is the occurrence class used for constructing occurrence objects that are used for the Events
+ *         This is the occurrence class used for constructing occurrence objects
+ *         that are used for the Events
  *
  */
 
@@ -23,7 +23,8 @@ public class Occurrence {
 	private String description;
 	private Timestamp timestamp;
 
-	private Occurrence() {}
+	private Occurrence() {
+	}
 
 	public Occurrence(String description, Timestamp datetime) {
 		this.description = description;

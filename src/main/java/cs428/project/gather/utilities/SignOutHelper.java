@@ -1,27 +1,34 @@
 package cs428.project.gather.utilities;
 
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.ServletContext;
+import javax.servlet.SessionCookieConfig;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * 
- * @author Team Gather
- * Utility class to help signout and delete the session cookies.
+ * @author Team Gather Utility class to help signout and delete the session
+ *         cookies.
  * 
  */
 public final class SignOutHelper {
-	private SignOutHelper() { }
+	private SignOutHelper() {
+	}
 
 	/**
 	 * Mark the current session in request to be invalid
 	 * 
-	 * @param request: HTTP request
+	 * @param request:
+	 *            HTTP request
 	 * 
 	 */
 	public static void invalidateSession(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
-		if(session != null) {
+		if (session != null) {
 			session.invalidate();
 		}
 	}
@@ -29,8 +36,10 @@ public final class SignOutHelper {
 	/**
 	 * Delete the session cookie
 	 * 
-	 * @param request: HTTP request
-	 * @param response: HTTP response
+	 * @param request:
+	 *            HTTP request
+	 * @param response:
+	 *            HTTP response
 	 * 
 	 */
 	public static void deleteSessionCookie(HttpServletRequest request, HttpServletResponse response) {
@@ -40,7 +49,7 @@ public final class SignOutHelper {
 		String sessionCookieName = sessionCookieConfig.getName();
 		sessionCookieName = StringUtils.trimToNull(sessionCookieName);
 
-		if(sessionCookieName != null) {
+		if (sessionCookieName != null) {
 			Cookie sessionCookie = new Cookie(sessionCookieName, "expired");
 
 			String sessionCookieDomain = sessionCookieConfig.getDomain();

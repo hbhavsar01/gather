@@ -1,31 +1,36 @@
 package cs428.project.gather.data.form;
 
-import cs428.project.gather.data.model.*;
-import cs428.project.gather.utilities.GsonHelper;
-import cs428.project.gather.validator.*;
+import java.util.List;
 
-import java.util.*;
-import com.google.gson.*;
 import org.springframework.validation.Errors;
+
+import com.google.gson.Gson;
+
+import cs428.project.gather.utilities.GsonHelper;
+import cs428.project.gather.validator.AbstractValidator;
 
 /**
  * 
- * @author Team Gather
- * This class represents the data object to update existing events 
+ * @author Team Gather This class represents the data object to update existing
+ *         events
  * 
  */
 public class UpdateEventData extends NewEventData {
 	private Long eventId;
 	private List<String> owners = null;
-	private List<String> participants= null;
+	private List<String> participants = null;
 
 	/**
-	 * Parse the raw JSON data in String and validate the data, then set the 
+	 * Parse the raw JSON data in String and validate the data, then set the
 	 * Error code accordingly.
 	 * 
-	 * @param rawData: The raw JSON data in String
-	 * @param validator: The validator object to validate the input data
-	 * @param errors: The error object to pass to the validator for different error code 
+	 * @param rawData:
+	 *            The raw JSON data in String
+	 * @param validator:
+	 *            The validator object to validate the input data
+	 * @param errors:
+	 *            The error object to pass to the validator for different error
+	 *            code
 	 * @return: A paginated bad request response based on the binding result.
 	 * 
 	 */
@@ -40,8 +45,11 @@ public class UpdateEventData extends NewEventData {
 	/**
 	 * Validate this object and save the Error status
 	 * 
-	 * @param validator: The validator object to validate the input data
-	 * @param errors: The error object to pass to the validator for different error code 
+	 * @param validator:
+	 *            The validator object to validate the input data
+	 * @param errors:
+	 *            The error object to pass to the validator for different error
+	 *            code
 	 * 
 	 */
 	public void validate(AbstractValidator validator, Errors errors) {

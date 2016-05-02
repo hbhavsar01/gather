@@ -7,20 +7,21 @@ import cs428.project.gather.data.model.Actor;
 
 /**
  * 
- * @author Team Gather
- * Utility class to manage user states
+ * @author Team Gather Utility class to manage user states
  * 
  */
 public final class ActorStateUtility {
 	private static final String ACTOR_KEY_NAME = "actor";
 	private static final String AUTHENTICATED_KEY_NAME = "authenticated";
 
-	private ActorStateUtility() { }
+	private ActorStateUtility() {
+	}
 
 	/**
 	 * Retrieve the user from session based on the HTTP request
 	 * 
-	 * @param request: HTTP request
+	 * @param request:
+	 *            HTTP request
 	 * @return: the user of this request.
 	 * 
 	 */
@@ -32,21 +33,23 @@ public final class ActorStateUtility {
 
 		HttpSession session = request.getSession(false);
 		if (session != null) {
-			actor = (Actor)session.getAttribute(ACTOR_KEY_NAME);
+			actor = (Actor) session.getAttribute(ACTOR_KEY_NAME);
 		}
 		return actor;
 	}
 
 	/**
-	 * Store the user into session 
+	 * Store the user into session
 	 * 
-	 * @param request: HTTP request
-	 * @param the user of this request.
+	 * @param request:
+	 *            HTTP request
+	 * @param the
+	 *            user of this request.
 	 * 
 	 */
 	public static void storeActorInSession(HttpServletRequest request, Actor actor) {
 		HttpSession session = null;
-		if(request == null) {
+		if (request == null) {
 			throw new IllegalArgumentException("The request cannot be null.");
 		}
 
@@ -64,23 +67,26 @@ public final class ActorStateUtility {
 	/**
 	 * Retrieve the user from the HTTP request directly
 	 * 
-	 * @param request: HTTP request
+	 * @param request:
+	 *            HTTP request
 	 * @return: the user of this request.
 	 * 
 	 */
 	public static Actor retrieveActorFromRequest(HttpServletRequest request) {
-		if(request == null) {
+		if (request == null) {
 			throw new IllegalArgumentException("The request cannot be null.");
 		}
 
-		return (Actor)request.getAttribute(ACTOR_KEY_NAME);
+		return (Actor) request.getAttribute(ACTOR_KEY_NAME);
 	}
 
 	/**
-	 * Store the user into HTTP request directly 
+	 * Store the user into HTTP request directly
 	 * 
-	 * @param request: HTTP request
-	 * @param the user of this request.
+	 * @param request:
+	 *            HTTP request
+	 * @param the
+	 *            user of this request.
 	 * 
 	 */
 	public static void storeActorInRequest(HttpServletRequest request, Actor actor) {
@@ -96,10 +102,12 @@ public final class ActorStateUtility {
 	}
 
 	/**
-	 * Store the user's authentication state into HTTP request  
+	 * Store the user's authentication state into HTTP request
 	 * 
-	 * @param request: HTTP request
-	 * @param the user of this request.
+	 * @param request:
+	 *            HTTP request
+	 * @param the
+	 *            user of this request.
 	 * 
 	 */
 	public static void storeAuthenticatedStateInRequest(HttpServletRequest request, Actor actor) {
@@ -120,16 +128,17 @@ public final class ActorStateUtility {
 			}
 		}
 	}
-	
+
 	/**
-	 * Retrieve the user's authentication state into HTTP request  
+	 * Retrieve the user's authentication state into HTTP request
 	 * 
-	 * @param request: HTTP request
+	 * @param request:
+	 *            HTTP request
 	 * @return true if user is authenticated, false otherwise
 	 * 
 	 */
 	public static boolean retrieveAuthenticatedStateInRequest(HttpServletRequest request) {
-		return (boolean)request.getAttribute(AUTHENTICATED_KEY_NAME);
+		return (boolean) request.getAttribute(AUTHENTICATED_KEY_NAME);
 	}
 
 }

@@ -1,15 +1,18 @@
 package cs428.project.gather.data.form;
 
-import cs428.project.gather.validator.*;
+import java.util.HashSet;
+import java.util.Set;
 
-import java.util.*;
-import com.google.gson.*;
 import org.springframework.validation.Errors;
+
+import com.google.gson.Gson;
+
+import cs428.project.gather.validator.AbstractValidator;
 
 /**
  * 
- * @author Team Gather
- * This class represents the data object to query events from backend
+ * @author Team Gather This class represents the data object to query events
+ *         from backend
  * 
  */
 public class EventsQueryData {
@@ -31,12 +34,16 @@ public class EventsQueryData {
 	private boolean useRegistrantProfile;
 
 	/**
-	 * Parse the raw JSON data in String and validate the data, then set the 
+	 * Parse the raw JSON data in String and validate the data, then set the
 	 * Error code accordingly.
 	 * 
-	 * @param rawData: The raw JSON data in String
-	 * @param validator: The validator object to validate the input data
-	 * @param errors: The error object to pass to the validator for different error code 
+	 * @param rawData:
+	 *            The raw JSON data in String
+	 * @param validator:
+	 *            The validator object to validate the input data
+	 * @param errors:
+	 *            The error object to pass to the validator for different error
+	 *            code
 	 * @return: A paginated bad request response based on the binding result.
 	 * 
 	 */
@@ -50,8 +57,11 @@ public class EventsQueryData {
 	/**
 	 * Validate this object and save the Error status
 	 * 
-	 * @param validator: The validator object to validate the input data
-	 * @param errors: The error object to pass to the validator for different error code 
+	 * @param validator:
+	 *            The validator object to validate the input data
+	 * @param errors:
+	 *            The error object to pass to the validator for different error
+	 *            code
 	 * 
 	 */
 	public void validate(AbstractValidator validator, Errors errors) {
@@ -114,4 +124,3 @@ public class EventsQueryData {
 		this.useRegistrantProfile = useRegistrantProfile;
 	}
 }
-

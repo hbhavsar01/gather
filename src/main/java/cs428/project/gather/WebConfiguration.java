@@ -1,25 +1,28 @@
 package cs428.project.gather;
 
-import cs428.project.gather.utilities.ActorInterceptor;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.util.*;
 import org.h2.server.web.WebServlet;
 import org.springframework.boot.context.embedded.ServletRegistrationBean;
-import org.springframework.context.annotation.*;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+import cs428.project.gather.utilities.ActorInterceptor;
 
 /**
  * 
- * @author Team Gather
- * The web configuration for Spring boot framework
+ * @author Team Gather The web configuration for Spring boot framework
  * 
  */
 @Configuration
 public class WebConfiguration extends WebMvcConfigurerAdapter {
-	
+
 	/**
-	 * set up the H2 database servlet and configure how to access 
-	 * the databse through web.
+	 * set up the H2 database servlet and configure how to access the databse
+	 * through web.
 	 *
 	 * @return servelt registration bean
 	 */
@@ -34,7 +37,7 @@ public class WebConfiguration extends WebMvcConfigurerAdapter {
 	}
 
 	/**
-	 * Returns a new Actor interceptor which contains the user's session 
+	 * Returns a new Actor interceptor which contains the user's session
 	 * information.
 	 *
 	 * @return actor interceptor
@@ -47,7 +50,8 @@ public class WebConfiguration extends WebMvcConfigurerAdapter {
 	/**
 	 * Added the actor interceptor to registry
 	 *
-	 * @param registry the registry to add the actor interceptor
+	 * @param registry
+	 *            the registry to add the actor interceptor
 	 * 
 	 */
 	@Override
