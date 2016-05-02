@@ -1,5 +1,10 @@
 package cs428.project.gather.controllers;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -17,14 +22,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import cs428.project.gather.GatherApplication;
-import cs428.project.gather.data.model.*;
-import cs428.project.gather.data.repo.*;
-import cs428.project.gather.data.response.*;
-
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.util.List;
+import cs428.project.gather.data.model.Registrant;
+import cs428.project.gather.data.repo.EventRepository;
+import cs428.project.gather.data.repo.RegistrantRepository;
+import cs428.project.gather.data.response.RESTResponseData;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(GatherApplication.class)
@@ -55,7 +56,7 @@ public class SessionControllerTest extends ControllerTest {
 		List<String> cookies = signInResponse.getHeaders().get("Set-Cookie");
 
 		HttpHeaders requestHeaders = new HttpHeaders();
-		requestHeaders.set("Cookie",StringUtils.join(cookies,';'));
+		requestHeaders.set("Cookie", StringUtils.join(cookies, ';'));
 		HttpEntity<String> requestEntity = new HttpEntity<String>(requestHeaders);
 
 		// Invoking the API

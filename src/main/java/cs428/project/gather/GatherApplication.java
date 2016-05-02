@@ -6,11 +6,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 
-
 /**
  * 
- * @author Team Gather
- * The class for program entry point
+ * @author Team Gather The class for program entry point
  * 
  */
 @EnableAutoConfiguration(exclude = { org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration.class,
@@ -26,7 +24,8 @@ public class GatherApplication extends SpringBootServletInitializer {
 	/**
 	 * main() function for program entry point
 	 *
-	 * @param args main() arguments.
+	 * @param args
+	 *            main() arguments.
 	 */
 	public static void main(String[] args) {
 		SpringApplication.run(GatherApplication.class, args);

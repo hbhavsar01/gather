@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller("HomeController")
 public class HomeController {
-	
+
 	/**
 	 * 
 	 * @return the index home page
@@ -14,7 +14,7 @@ public class HomeController {
 	public String index() {
 		return "index";
 	}
-	
+
 	/**
 	 * 
 	 * @return the registration form page

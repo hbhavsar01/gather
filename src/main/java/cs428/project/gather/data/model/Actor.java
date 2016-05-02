@@ -1,14 +1,21 @@
 package cs428.project.gather.data.model;
 
-import javax.persistence.*;
-import org.apache.commons.lang3.builder.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * 
  * @author Team Gather
  * 
- * This class is superclass of the Registrant class providing the ActorType constructor and assigning 
- * IDs to registrants. 
+ *         This class is superclass of the Registrant class providing the
+ *         ActorType constructor and assigning IDs to registrants.
  *
  */
 @Entity
@@ -35,8 +42,10 @@ public class Actor {
 	}
 
 	/**
-	 * This method overrides the hashCode method and returns to overwritten value
-	 * @return int 
+	 * This method overrides the hashCode method and returns to overwritten
+	 * value
+	 * 
+	 * @return int
 	 */
 	@Override
 	public int hashCode() {
@@ -49,7 +58,8 @@ public class Actor {
 	/**
 	 * This method overrides the equals method which compares to objects
 	 * 
-	 * @return A boolean value indicating whether two objects were the same or not
+	 * @return A boolean value indicating whether two objects were the same or
+	 *         not
 	 */
 	@Override
 	public boolean equals(Object anotherObject) {

@@ -24,17 +24,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cs428.project.gather.data.response.RESTResponseData;
 
 public class ControllerTest {
-	
+
 	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	public static RestTemplate restTemplate = new TestRestTemplate();
 
-	public static ResponseEntity<RESTResponseData> authenticateUser(String email, String password, HttpHeaders headers) throws JsonProcessingException {
+	public static ResponseEntity<RESTResponseData> authenticateUser(String email, String password, HttpHeaders headers)
+			throws JsonProcessingException {
 		// Building the Request body data
 		Map<String, Object> requestBody = new HashMap<String, Object>();
 		requestBody.put("email", email);
 		requestBody.put("password", password);
 		HttpHeaders requestHeaders = new HttpHeaders();
-		if(headers != null){
+		if (headers != null) {
 			requestHeaders.set("Cookie", headers.getFirst("Cookie"));
 		}
 		requestHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -52,8 +53,9 @@ public class ControllerTest {
 		return result;
 
 	}
-	
-	public static ResponseEntity<RESTResponseData> checkSession(HttpEntity<String> requestEntity) throws JsonProcessingException {
+
+	public static ResponseEntity<RESTResponseData> checkSession(HttpEntity<String> requestEntity)
+			throws JsonProcessingException {
 		// Invoking the API
 		ResponseEntity<RESTResponseData> response = restTemplate.exchange("http://localhost:8888/rest/session",
 				HttpMethod.GET, requestEntity, RESTResponseData.class);
@@ -62,8 +64,9 @@ public class ControllerTest {
 		return response;
 
 	}
-	
-	public static HttpEntity<String> signInAndCheckSession(String email, String password) throws JsonProcessingException {
+
+	public static HttpEntity<String> signInAndCheckSession(String email, String password)
+			throws JsonProcessingException {
 		// Sign in
 		ResponseEntity<RESTResponseData> signInResponse = authenticateUser(email, password, null);
 		List<String> cookies = signInResponse.getHeaders().get("Set-Cookie");
